@@ -51,7 +51,10 @@ export default function Header({ user }: Props) {
             </p>
           </div>
           <div className="group relative">
-            <div className="w-10 h-10 rounded-lg bg-[#0a2d4d] flex items-center justify-center overflow-hidden cursor-pointer">
+            <div 
+              onClick={() => router.push('/opciones')}
+              className="w-10 h-10 rounded-lg bg-[#0a2d4d] flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#0a2d4d]/20 transition-all"
+            >
               <img 
                 src={`https://ui-avatars.com/api/?name=${user?.first_name}+${user?.last_name}&background=0a2d4d&color=fff`} 
                 alt="Avatar" 
