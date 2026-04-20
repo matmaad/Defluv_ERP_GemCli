@@ -17,7 +17,7 @@ export default async function OpcionesPage() {
   }
 
   return (
-    <div className="pt-8">
+    <div className="min-h-full bg-gray-50 pt-8">
       <SettingsClient 
         currentEmail={user?.email || ''} 
         userName={profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario'}
