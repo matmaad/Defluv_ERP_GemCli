@@ -36,14 +36,6 @@ export default function PersonnelClient({ records }: Props) {
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans text-[#0a2d4d]">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight">Registro de Personal</h1>
-          <p className="text-gray-500 text-sm font-medium">Control centralizado de colaboradores y obra.</p>
-        </div>
-      </div>
-
       {/* Summary Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 relative h-56 rounded-3xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white">

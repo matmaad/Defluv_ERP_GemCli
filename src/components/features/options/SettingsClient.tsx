@@ -62,12 +62,7 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-12">
-      <div>
-        <h1 className="text-2xl font-black text-[#0a2d4d] uppercase tracking-tight">Opciones de Cuenta</h1>
-        <p className="text-gray-500 text-sm font-medium">Gestione su información de acceso y seguridad.</p>
-      </div>
-
+    <div className="max-w-4xl mx-auto p-8 pt-0 space-y-12">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Email Form */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6">

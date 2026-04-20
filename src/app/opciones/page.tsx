@@ -17,9 +17,11 @@ export default async function OpcionesPage() {
   }
 
   return (
-    <SettingsClient 
-      currentEmail={user?.email || ''} 
-      userName={profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario'}
-    />
+    <div className="pt-8">
+      <SettingsClient 
+        currentEmail={user?.email || ''} 
+        userName={profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario'}
+      />
+    </div>
   )
 }

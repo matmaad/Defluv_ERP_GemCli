@@ -55,30 +55,6 @@ const statIcons: Record<string, any> = {
 export default function DocumentMatrixClient({ initialDocuments, stats, departments }: Props) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
-  const [rejectModalDoc, setRejectModalDoc] = useState<{id: string, title: string} | null>(null)
-  const [replaceModalDoc, setReplaceModalDoc] = useState<{id: string, title: string, path: string} | null>(null)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  
-  const supabase = createClient()
-  const router = useRouter()
-
-  const handleApprove = async (docId: string) => {
-    setActionLoading(docId)
-    try {
-      const { error } = await supabase
-        .from('documents')
-        .update({ current_status: 'Aprobado' })
-        .eq('document_id', docId)
-      
-      if (error) throw error
-      router.refresh()
-    } catch (error) {
-      console.error('Error approving:', error)
-      alert('Error al aprobar el documento.')
-    } finally {
-      setActionLoading(null)
-    }
-  }
 
   const filteredDocuments = initialDocuments.filter(doc => 
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -87,14 +63,6 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto">
-      {/* Header Section */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-[#0a2d4d]">Matriz de Documentos</h1>
-          <p className="text-gray-500 text-sm">Gestión y control de todos los documentos del SGC.</p>
-        </div>
-      </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {stats.map((stat, idx) => {

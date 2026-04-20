@@ -89,13 +89,6 @@ export default function AccessControlClient({ profiles, departments, permissions
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans">
-      <div className="flex justify-between items-start text-[#0a2d4d]">
-        <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight">Control de Acceso</h1>
-          <p className="text-gray-500 text-sm font-medium">Gestión de privilegios por departamento.</p>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* User Selection */}
         <div className="lg:col-span-3 space-y-6">
