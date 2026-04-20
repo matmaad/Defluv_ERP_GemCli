@@ -10,10 +10,14 @@ import {
   ShieldAlert,
   FileText,
   UserCircle,
-  Plus
+  Plus,
+  Trash2,
+  Loader2
 } from 'lucide-react'
 import { PersonalRecord } from '@/app/types/database'
 import AddPersonnelModal from './AddPersonnelModal'
+import { createClient } from '@/utils/supabase/cliente'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   records: PersonalRecord[]
@@ -27,6 +31,33 @@ const statusStyles: Record<string, string> = {
 
 export default function PersonnelClient({ records }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  
+  const supabase = createClient()
+  const router = useRouter()
+
+  const handleDelete = async (recordId: string, name: string) => {
+    if (!confirm(`¿Está seguro de que desea eliminar a ${name}? Esta acción no se puede deshacer.`)) {
+      return
+    }
+
+    setDeletingId(recordId)
+    try {
+      const { error } = await supabase
+        .from('personal_records')
+        .delete()
+        .eq('record_id', recordId)
+
+      if (error) throw error
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error deleting personnel:', error)
+      alert('Error al eliminar el registro.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const stats = [
     { label: 'TOTAL ACTIVOS', value: records.filter(r => r.status === 'Vinculado').length },
@@ -108,8 +139,16 @@ export default function PersonnelClient({ records }: Props) {
                 <td className="px-8 py-6 text-xs font-bold text-gray-400">{new Date(p.entry_date).toLocaleDateString()}</td>
                 <td className="px-8 py-6 text-right">
                   <div className="flex justify-end gap-3 text-gray-300">
-                    <button className="p-1 hover:text-[#0a2d4d] transition-colors"><FileText size={18} /></button>
-                    <button className="p-1 hover:text-blue-600 transition-colors"><Plus size={18} /></button>
+                    <button className="p-1 hover:text-[#0a2d4d] transition-colors" title="Ver Documentos"><FileText size={18} /></button>
+                    <button 
+                      onClick={() => handleDelete(p.record_id, `${p.first_name} ${p.last_name}`)}
+                      disabled={deletingId === p.record_id}
+                      className="p-1 hover:text-red-600 transition-colors disabled:opacity-50"
+                      title="Eliminar Registro"
+                    >
+                      {deletingId === p.record_id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                    </button>
+                    <button className="p-1 hover:text-blue-600 transition-colors" title="Agregar Documentación"><Plus size={18} /></button>
                   </div>
                 </td>
               </tr>
