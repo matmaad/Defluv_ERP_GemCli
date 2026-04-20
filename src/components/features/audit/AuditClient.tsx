@@ -63,20 +63,18 @@ export default function AuditClient({ initialLogs }: Props) {
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 h-screen overflow-hidden font-sans">
-      {/* Top Header */}
-      <div className="p-8 pb-4 flex justify-between items-start">
-        <div className="flex items-center gap-4 text-[#0a2d4d]">
-           {selectedDoc && (
-             <button onClick={() => setSelectedDoc(null)} className="p-2 hover:bg-gray-200 rounded-xl transition-colors">
-               <ArrowLeft size={20} />
-             </button>
-           )}
-           <div>
-              <h1 className="text-2xl font-black uppercase tracking-tight">Registro de Auditoría</h1>
-              <p className="text-gray-500 text-sm font-medium">Trazabilidad técnica y cumplimiento normativo.</p>
-           </div>
+      {/* Internal Navigation (Back Button) */}
+      {selectedDoc && (
+        <div className="px-8 pt-4">
+           <button 
+            onClick={() => setSelectedDoc(null)} 
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm group"
+           >
+             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+             Volver al Listado
+           </button>
         </div>
-      </div>
+      )}
 
       {!selectedDoc ? (
         <div className="flex-1 p-8 pt-0 space-y-6 overflow-y-auto">
