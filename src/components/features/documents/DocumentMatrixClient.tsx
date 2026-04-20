@@ -55,6 +55,30 @@ const statIcons: Record<string, any> = {
 export default function DocumentMatrixClient({ initialDocuments, stats, departments }: Props) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [rejectModalDoc, setRejectModalDoc] = useState<{id: string, title: string} | null>(null)
+  const [replaceModalDoc, setReplaceModalDoc] = useState<{id: string, title: string, path: string} | null>(null)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  
+  const supabase = createClient()
+  const router = useRouter()
+
+  const handleApprove = async (docId: string) => {
+    setActionLoading(docId)
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({ current_status: 'Aprobado' })
+        .eq('document_id', docId)
+      
+      if (error) throw error
+      router.refresh()
+    } catch (error) {
+      console.error('Error approving:', error)
+      alert('Error al aprobar el documento.')
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   const filteredDocuments = initialDocuments.filter(doc => 
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
