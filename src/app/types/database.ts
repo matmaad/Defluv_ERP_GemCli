@@ -1,7 +1,7 @@
 // src/app/types/database.ts
 
 export type UserRole = 'admin' | 'sub_admin' | 'regular_user';
-export type DocStatus = 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Vencido' | 'No Cumple' | 'Corregir';
+export type DocStatus = 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Vencido' | 'No Cumple';
 export type TaskPriority = 'Baja' | 'Estándar' | 'Urgente' | 'Crítico';
 
 export interface Profile {

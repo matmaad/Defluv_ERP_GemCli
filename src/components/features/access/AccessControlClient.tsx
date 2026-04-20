@@ -1,22 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   Users, 
   ShieldCheck, 
-  RotateCcw, 
   Check, 
-  UserPlus, 
-  ChevronRight,
-  History,
-  Box,
-  BarChart3,
-  ShieldAlert,
-  Wrench,
-  Microscope,
-  Truck
+  Box, 
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
 import { Profile, Department, Permission } from '@/app/types/database'
+import { createClient } from '@/utils/supabase/cliente'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   profiles: Profile[]
@@ -24,114 +19,187 @@ interface Props {
   permissions: Permission[]
 }
 
-const iconMap: Record<string, any> = {
-  'Bodega': Box,
-  'Control de Gestión': BarChart3,
-  'Prevención de Riesgos': ShieldAlert,
-  'Mantenimiento': Wrench,
-  'Laboratorio': Microscope,
-  'Logística': Truck,
-}
-
-export default function AccessControlClient({ profiles, departments, permissions }: Props) {
+export default function AccessControlClient({ profiles, departments, permissions: initialPermissions }: Props) {
   const [selectedUser, setSelectedUser] = useState(profiles[0] || null)
+  const [localPermissions, setLocalPermissions] = useState<Permission[]>(initialPermissions)
+  const [loading, setLoading] = useState(false)
+  const [changed, setChanged] = useState(false)
+  
+  const supabase = createClient()
+  const router = useRouter()
 
-  const userPermissions = permissions.filter(p => p.user_id === selectedUser?.user_id)
+  const handleCheckboxChange = (deptId: string, type: 'can_view' | 'can_edit' | 'can_approve') => {
+    if (!selectedUser) return
+
+    setLocalPermissions(prev => {
+      const existing = prev.find(p => p.user_id === selectedUser.user_id && p.department_id === deptId)
+      
+      if (existing) {
+        return prev.map(p => 
+          (p.user_id === selectedUser.user_id && p.department_id === deptId)
+            ? { ...p, [type]: !p[type] }
+            : p
+        )
+      } else {
+        // Create new permission entry
+        const newPerm: any = {
+          user_id: selectedUser.user_id,
+          department_id: deptId,
+          can_view: type === 'can_view',
+          can_edit: type === 'can_edit',
+          can_approve: type === 'can_approve',
+        }
+        return [...prev, newPerm]
+      }
+    })
+    setChanged(true)
+  }
+
+  const handleSave = async () => {
+    if (!selectedUser) return
+    setLoading(true)
+
+    try {
+      const userPerms = localPermissions.filter(p => p.user_id === selectedUser.user_id)
+      
+      // Upsert permissions for this user
+      const { error } = await supabase
+        .from('permissions')
+        .upsert(userPerms, { onConflict: 'user_id, department_id' })
+
+      if (error) throw error
+
+      setChanged(false)
+      alert('Permisos actualizados correctamente.')
+      router.refresh()
+    } catch (error) {
+      console.error('Error saving permissions:', error)
+      alert('Error al guardar los permisos.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getUserPerm = (deptId: string) => {
+    return localPermissions.find(p => p.user_id === selectedUser?.user_id && p.department_id === deptId)
+  }
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans">
-      {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start text-[#0a2d4d]">
         <div>
-          <h1 className="text-2xl font-bold text-[#0a2d4d]">Control de Acceso</h1>
-          <p className="text-gray-500 text-sm">Gestión de permisos y roles de usuario.</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight">Control de Acceso</h1>
+          <p className="text-gray-500 text-sm font-medium">Gestión de privilegios por departamento.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Sidebar: Personnel Selection */}
+        {/* User Selection */}
         <div className="lg:col-span-3 space-y-6">
-           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex items-center gap-3">
+           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-50 flex items-center gap-3">
                  <Users className="text-gray-400" size={18} />
-                 <h3 className="text-xs font-bold text-[#0a2d4d] uppercase tracking-widest">Usuarios</h3>
+                 <h3 className="text-[10px] font-black uppercase tracking-widest text-[#0a2d4d]">Usuarios del Sistema</h3>
               </div>
               <div className="p-4 space-y-2">
                  {profiles.map((p) => (
                    <button 
                     key={p.user_id}
-                    onClick={() => setSelectedUser(p)}
-                    className={`w-full p-4 rounded-xl flex items-center justify-between transition-all border-2 ${selectedUser?.user_id === p.user_id ? 'bg-blue-50 border-blue-600 shadow-md' : 'bg-white border-transparent hover:bg-gray-50'}`}
+                    onClick={() => {
+                      if (changed) {
+                        if (!confirm('Tiene cambios sin guardar. ¿Desea cambiar de usuario?')) return
+                        setChanged(false)
+                      }
+                      setSelectedUser(p)
+                    }}
+                    className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all border-2 ${selectedUser?.user_id === p.user_id ? 'bg-blue-50 border-[#0a2d4d] shadow-sm' : 'bg-white border-transparent hover:bg-gray-50'}`}
                    >
                       <div className="flex items-center gap-3 text-left">
-                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs ${selectedUser?.user_id === p.user_id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-[#0a2d4d]'}`}>
+                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${selectedUser?.user_id === p.user_id ? 'bg-[#0a2d4d] text-white' : 'bg-gray-100 text-gray-400'}`}>
                             {p.first_name[0]}{p.last_name[0]}
                          </div>
                          <div>
-                            <p className={`text-xs font-bold ${selectedUser?.user_id === p.user_id ? 'text-blue-700' : 'text-[#0a2d4d]'}`}>{p.first_name} {p.last_name}</p>
-                            <p className="text-[9px] font-bold text-gray-400 uppercase">{p.role}</p>
+                            <p className="text-xs font-black uppercase">{p.first_name} {p.last_name}</p>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{p.role}</p>
                          </div>
                       </div>
-                      {selectedUser?.user_id === p.user_id && <Check size={12} className="text-blue-600" />}
+                      {selectedUser?.user_id === p.user_id && <Check size={12} className="text-[#0a2d4d]" />}
                    </button>
                  ))}
-                 {profiles.length === 0 && <p className="text-center text-gray-400 text-xs py-4">No hay usuarios.</p>}
               </div>
            </div>
         </div>
 
-        {/* Right Content: Permission Matrix */}
+        {/* Permission Matrix */}
         <div className="lg:col-span-9 space-y-6">
-           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden h-full flex flex-col">
-              <div className="p-8 border-b border-gray-100 flex justify-between items-center">
+           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
+              <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/20">
                  <div className="flex gap-4 items-center">
-                    <div className="w-12 h-12 rounded-xl bg-[#0a2d4d] text-white flex items-center justify-center shadow-lg shadow-blue-900/20">
+                    <div className="w-12 h-12 rounded-2xl bg-[#0a2d4d] text-white flex items-center justify-center shadow-lg shadow-blue-900/20">
                        <ShieldCheck size={24} />
                     </div>
                     <div>
-                       <h3 className="text-sm font-bold text-[#0a2d4d] uppercase tracking-widest">Matriz de Permisos</h3>
+                       <h3 className="text-sm font-black uppercase tracking-widest text-[#0a2d4d]">Matriz de Permisos</h3>
                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                          Editando derechos de: <span className="text-blue-600 font-black">{selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : 'Seleccione un usuario'}</span>
+                          Editando derechos de: <span className="text-blue-600 font-black">{selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : '...'}</span>
                        </p>
                     </div>
                  </div>
-                 <div className="flex gap-3">
-                    <button className="px-6 py-2.5 bg-[#0a2d4d] rounded-lg text-[10px] font-bold text-white uppercase tracking-widest hover:bg-blue-900 transition-all shadow-lg shadow-blue-900/20">
-                       Confirmar Cambios
+                 {changed && (
+                    <button 
+                      onClick={handleSave}
+                      disabled={loading}
+                      className="px-8 py-3 bg-[#0a2d4d] rounded-xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2"
+                    >
+                       {loading ? <Loader2 size={14} className="animate-spin" /> : 'Guardar Cambios'}
                     </button>
-                 </div>
+                 )}
               </div>
 
               <div className="flex-1 overflow-x-auto">
                  <table className="w-full text-left border-collapse">
                     <thead>
                        <tr className="bg-gray-50/50 border-b border-gray-100">
-                          <th className="px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Departamento / Unidad</th>
-                          <th className="px-4 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Ver</th>
-                          <th className="px-4 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Editar</th>
-                          <th className="px-4 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Aprobar</th>
+                          <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Departamento / Unidad</th>
+                          <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Ver</th>
+                          <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Editar</th>
+                          <th className="px-4 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Aprobar</th>
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                        {departments.map((d) => {
-                         const perm = userPermissions.find(p => p.department_id === d.department_id)
-                         const Icon = iconMap[d.name] || Box
+                         const perm = getUserPerm(d.department_id)
                          return (
                            <tr key={d.department_id} className="hover:bg-gray-50/50 transition-colors group">
                               <td className="px-8 py-6">
                                  <div className="flex items-center gap-4">
-                                    <Icon className="text-gray-400 group-hover:text-blue-600 transition-colors" size={20} />
-                                    <span className="text-xs font-bold text-[#0a2d4d] uppercase tracking-wider">{d.name}</span>
+                                    <Box className="text-gray-300 group-hover:text-blue-600 transition-colors" size={20} />
+                                    <span className="text-xs font-black uppercase text-[#0a2d4d] tracking-wide">{d.name}</span>
                                  </div>
                               </td>
                               <td className="px-4 py-6 text-center">
-                                 <input type="checkbox" checked={perm?.can_view || false} className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                 <input 
+                                  type="checkbox" 
+                                  checked={perm?.can_view || false} 
+                                  onChange={() => handleCheckboxChange(d.department_id, 'can_view')}
+                                  className="w-5 h-5 rounded-lg border-gray-200 text-[#0a2d4d] focus:ring-[#0a2d4d]/20 cursor-pointer" 
+                                 />
                               </td>
                               <td className="px-4 py-6 text-center">
-                                 <input type="checkbox" checked={perm?.can_edit || false} className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                 <input 
+                                  type="checkbox" 
+                                  checked={perm?.can_edit || false} 
+                                  onChange={() => handleCheckboxChange(d.department_id, 'can_edit')}
+                                  className="w-5 h-5 rounded-lg border-gray-200 text-[#0a2d4d] focus:ring-[#0a2d4d]/20 cursor-pointer" 
+                                 />
                               </td>
                               <td className="px-4 py-6 text-center">
-                                 <input type="checkbox" checked={perm?.can_approve || false} className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                 <input 
+                                  type="checkbox" 
+                                  checked={perm?.can_approve || false} 
+                                  onChange={() => handleCheckboxChange(d.department_id, 'can_approve')}
+                                  className="w-5 h-5 rounded-lg border-gray-200 text-[#0a2d4d] focus:ring-[#0a2d4d]/20 cursor-pointer" 
+                                 />
                               </td>
                            </tr>
                          )

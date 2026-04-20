@@ -1,5 +1,6 @@
-// src/components/layout/Sidebar.tsx
 'use client'
+
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -9,7 +10,9 @@ import {
   ShieldCheck, 
   History, 
   Settings, 
-  LifeBuoy 
+  LifeBuoy,
+  Menu,
+  X
 } from 'lucide-react'
 
 const menuItems = [
@@ -22,49 +25,60 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <aside className="w-64 bg-[#0a2d4d] text-white flex flex-col h-screen sticky top-0">
-      {/* Logo Area */}
-      <div className="p-6 border-b border-blue-900/50">
-        <div className="bg-white p-2 rounded-sm mb-2">
-          <h1 className="text-[#0a2d4d] font-black text-xl tracking-tighter">DEFLUV</h1>
+    <>
+      {/* Mobile Toggle */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="lg:hidden fixed top-8 left-4 z-[110] p-2 bg-[#0a2d4d] text-white rounded-lg shadow-lg"
+      >
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Backdrop */}
+      {isOpen && (
+        <div 
+          onClick={() => setIsOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/50 z-[100] backdrop-blur-sm"
+        ></div>
+      )}
+
+      <aside className={`fixed lg:sticky top-0 left-0 z-[105] w-64 bg-[#0a2d4d] text-white flex flex-col h-screen transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-8 border-b border-blue-900/50">
+           <div className="bg-white p-3 rounded-xl mb-3 shadow-inner">
+              <h1 className="text-[#0a2d4d] font-black text-2xl tracking-tighter">DEFLUV</h1>
+           </div>
+           <p className="text-[10px] text-blue-300 font-bold tracking-[0.3em] uppercase opacity-60">Gestión de Calidad</p>
         </div>
-        <p className="text-[10px] text-blue-300 font-bold tracking-widest uppercase">
-          Gestión de Calidad
-        </p>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-md text-xs font-bold transition-colors ${
-                isActive 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-blue-200 hover:bg-blue-800/50 hover:text-white'
-              }`}
-            >
-              <item.icon size={18} />
-              {item.name}
-            </Link>
-          )
-        })}
-      </nav>
+        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto">
+           {menuItems.map((item) => {
+             const isActive = pathname === item.href
+             return (
+               <Link 
+                key={item.name} 
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 px-5 py-4 rounded-xl text-[10px] font-black tracking-widest transition-all ${isActive ? 'bg-blue-600 text-white shadow-xl shadow-blue-900/40 translate-x-1' : 'text-blue-200 hover:bg-blue-800/40 hover:text-white hover:translate-x-1'}`}
+               >
+                 <item.icon size={18} className={isActive ? 'text-white' : 'text-blue-400'} />
+                 {item.name}
+               </Link>
+             )
+           })}
+        </nav>
 
-      {/* Bottom Actions */}
-      <div className="p-4 border-t border-blue-900/50 space-y-1">
-        <button className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-blue-300 hover:text-white w-full">
-          <Settings size={18} /> OPCIONES
-        </button>
-        <button className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-blue-300 hover:text-white w-full">
-          <LifeBuoy size={18} /> SOPORTE
-        </button>
-      </div>
-    </aside>
+        <div className="p-6 border-t border-blue-900/50 space-y-1 bg-blue-950/20">
+          <button className="flex items-center gap-3 px-5 py-4 text-[10px] font-black text-blue-300 hover:text-white w-full tracking-widest transition-all hover:bg-white/5 rounded-xl">
+             <Settings size={18} /> OPCIONES
+          </button>
+          <button className="flex items-center gap-3 px-5 py-4 text-[10px] font-black text-blue-300 hover:text-white w-full tracking-widest transition-all hover:bg-white/5 rounded-xl">
+             <LifeBuoy size={18} /> SOPORTE
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }
