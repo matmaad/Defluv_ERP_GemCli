@@ -44,8 +44,8 @@ export default function LoginPage() {
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="p-8 text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#0a2d4d] text-white shadow-xl shadow-blue-900/20 mb-2">
-              <ShieldCheck size={32} />
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white shadow-xl shadow-blue-900/10 mb-2 overflow-hidden border border-gray-100 p-2">
+              <img src="/logo-defluv.png" alt="DEFLUV" className="max-h-full max-w-full object-contain" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-[#0a2d4d] tracking-tight uppercase">DEFLUV SGC</h1>

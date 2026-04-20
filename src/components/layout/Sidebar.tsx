@@ -47,8 +47,8 @@ export default function Sidebar() {
 
       <aside className={`fixed lg:sticky top-0 left-0 z-[105] w-64 bg-[#0a2d4d] text-white flex flex-col h-screen transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-8 border-b border-blue-900/50">
-           <div className="bg-white p-3 rounded-xl mb-3 shadow-inner">
-              <h1 className="text-[#0a2d4d] font-black text-2xl tracking-tighter">DEFLUV</h1>
+           <div className="bg-white p-3 rounded-xl mb-3 shadow-inner flex items-center justify-center overflow-hidden h-20">
+              <img src="/logo-defluv.png" alt="DEFLUV" className="max-h-full max-w-full object-contain" />
            </div>
            <p className="text-[10px] text-blue-300 font-bold tracking-[0.3em] uppercase opacity-60">Gestión de Calidad</p>
         </div>
