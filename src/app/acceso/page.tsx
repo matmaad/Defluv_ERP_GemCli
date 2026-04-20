@@ -4,6 +4,19 @@ import AccessControlClient from '@/components/features/access/AccessControlClien
 export default async function AccesoPage() {
   const supabase = await createClient()
 
+  // Fetch current user role
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  let currentUserRole = 'regular_user'
+  
+  if (authUser) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', authUser.id)
+      .single()
+    if (profile) currentUserRole = profile.role
+  }
+
   // Fetch profiles
   const { data: profiles } = await supabase
     .from('profiles')
@@ -26,6 +39,7 @@ export default async function AccesoPage() {
       profiles={profiles || []} 
       departments={departments || []}
       permissions={permissions || []}
+      currentUserRole={currentUserRole}
     />
   )
 }

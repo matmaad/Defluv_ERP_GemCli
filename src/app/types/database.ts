@@ -5,7 +5,7 @@ export type DocStatus = 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Vencido' | 'No
 export type TaskPriority = 'Baja' | 'Estándar' | 'Urgente' | 'Crítico';
 
 export interface Profile {
-  user_id: string;
+  id: string;
   email: string;
   first_name: string;
   last_name: string;

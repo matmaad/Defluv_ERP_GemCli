@@ -7,23 +7,28 @@ import {
   Check, 
   Box, 
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ChevronRight,
+  UserPlus
 } from 'lucide-react'
 import { Profile, Department, Permission } from '@/app/types/database'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import RegisterUserModal from './RegisterUserModal'
 
 interface Props {
   profiles: Profile[]
   departments: Department[]
   permissions: Permission[]
+  currentUserRole: string
 }
 
-export default function AccessControlClient({ profiles, departments, permissions: initialPermissions }: Props) {
+export default function AccessControlClient({ profiles, departments, permissions: initialPermissions, currentUserRole }: Props) {
   const [selectedUser, setSelectedUser] = useState(profiles[0] || null)
   const [localPermissions, setLocalPermissions] = useState<Permission[]>(initialPermissions)
   const [loading, setLoading] = useState(false)
   const [changed, setChanged] = useState(false)
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
   
   const supabase = createClient()
   const router = useRouter()
@@ -32,18 +37,17 @@ export default function AccessControlClient({ profiles, departments, permissions
     if (!selectedUser) return
 
     setLocalPermissions(prev => {
-      const existing = prev.find(p => p.user_id === selectedUser.user_id && p.department_id === deptId)
+      const existing = prev.find(p => p.user_id === selectedUser.id && p.department_id === deptId)
       
       if (existing) {
         return prev.map(p => 
-          (p.user_id === selectedUser.user_id && p.department_id === deptId)
+          (p.user_id === selectedUser.id && p.department_id === deptId)
             ? { ...p, [type]: !p[type] }
             : p
         )
       } else {
-        // Create new permission entry
         const newPerm: any = {
-          user_id: selectedUser.user_id,
+          user_id: selectedUser.id,
           department_id: deptId,
           can_view: type === 'can_view',
           can_edit: type === 'can_edit',
@@ -60,9 +64,8 @@ export default function AccessControlClient({ profiles, departments, permissions
     setLoading(true)
 
     try {
-      const userPerms = localPermissions.filter(p => p.user_id === selectedUser.user_id)
+      const userPerms = localPermissions.filter(p => p.user_id === selectedUser.id)
       
-      // Upsert permissions for this user
       const { error } = await supabase
         .from('permissions')
         .upsert(userPerms, { onConflict: 'user_id, department_id' })
@@ -81,7 +84,7 @@ export default function AccessControlClient({ profiles, departments, permissions
   }
 
   const getUserPerm = (deptId: string) => {
-    return localPermissions.find(p => p.user_id === selectedUser?.user_id && p.department_id === deptId)
+    return localPermissions.find(p => p.user_id === selectedUser?.id && p.department_id === deptId)
   }
 
   return (
@@ -104,7 +107,7 @@ export default function AccessControlClient({ profiles, departments, permissions
               <div className="p-4 space-y-2">
                  {profiles.map((p) => (
                    <button 
-                    key={p.user_id}
+                    key={p.id}
                     onClick={() => {
                       if (changed) {
                         if (!confirm('Tiene cambios sin guardar. ¿Desea cambiar de usuario?')) return
@@ -112,10 +115,10 @@ export default function AccessControlClient({ profiles, departments, permissions
                       }
                       setSelectedUser(p)
                     }}
-                    className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all border-2 ${selectedUser?.user_id === p.user_id ? 'bg-blue-50 border-[#0a2d4d] shadow-sm' : 'bg-white border-transparent hover:bg-gray-50'}`}
+                    className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all border-2 ${selectedUser?.id === p.id ? 'bg-blue-50 border-[#0a2d4d] shadow-sm' : 'bg-white border-transparent hover:bg-gray-50'}`}
                    >
                       <div className="flex items-center gap-3 text-left">
-                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${selectedUser?.user_id === p.user_id ? 'bg-[#0a2d4d] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${selectedUser?.id === p.id ? 'bg-[#0a2d4d] text-white' : 'bg-gray-100 text-gray-400'}`}>
                             {p.first_name[0]}{p.last_name[0]}
                          </div>
                          <div>
@@ -123,11 +126,21 @@ export default function AccessControlClient({ profiles, departments, permissions
                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{p.role}</p>
                          </div>
                       </div>
-                      {selectedUser?.user_id === p.user_id && <Check size={12} className="text-[#0a2d4d]" />}
+                      {selectedUser?.id === p.id && <Check size={12} className="text-[#0a2d4d]" />}
                    </button>
                  ))}
               </div>
            </div>
+
+           {currentUserRole === 'admin' && (
+              <button 
+                onClick={() => setIsRegisterModalOpen(true)}
+                className="w-full py-4 bg-white border border-gray-200 rounded-2xl flex items-center justify-center gap-3 text-xs font-bold text-[#0a2d4d] uppercase tracking-widest hover:bg-[#0a2d4d] hover:text-white transition-all group shadow-sm"
+              >
+                <UserPlus className="text-gray-400 group-hover:text-white transition-colors" size={18} />
+                Registrar Nuevo Operador
+              </button>
+           )}
         </div>
 
         {/* Permission Matrix */}
@@ -207,9 +220,21 @@ export default function AccessControlClient({ profiles, departments, permissions
                     </tbody>
                  </table>
               </div>
+
+              <div className="px-8 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center">
+                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mostrando {departments.length} departamentos</span>
+                 <div className="flex items-center gap-4">
+                    <button className="p-1 text-gray-400 hover:text-[#0a2d4d]"><ChevronRight size={18} /></button>
+                 </div>
+              </div>
            </div>
         </div>
       </div>
+
+      <RegisterUserModal 
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+      />
     </div>
   )
 }

@@ -71,9 +71,12 @@ export default function Sidebar() {
         </nav>
 
         <div className="p-6 border-t border-blue-900/50 space-y-1 bg-blue-950/20">
-          <button className="flex items-center gap-3 px-5 py-4 text-[10px] font-black text-blue-300 hover:text-white w-full tracking-widest transition-all hover:bg-white/5 rounded-xl">
+          <Link 
+            href="/opciones"
+            className={`flex items-center gap-3 px-5 py-4 text-[10px] font-black text-blue-300 hover:text-white w-full tracking-widest transition-all hover:bg-white/5 rounded-xl ${pathname === '/opciones' ? 'bg-blue-600 text-white shadow-lg' : ''}`}
+          >
              <Settings size={18} /> OPCIONES
-          </button>
+          </Link>
           <button className="flex items-center gap-3 px-5 py-4 text-[10px] font-black text-blue-300 hover:text-white w-full tracking-widest transition-all hover:bg-white/5 rounded-xl">
              <LifeBuoy size={18} /> SOPORTE
           </button>

@@ -28,7 +28,7 @@ export default async function RootLayout({
     const { data } = await supabase
       .from('profiles')
       .select('first_name, last_name, role')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single()
     profile = data
   }

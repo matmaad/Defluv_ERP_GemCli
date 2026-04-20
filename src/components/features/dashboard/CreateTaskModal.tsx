@@ -148,7 +148,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
                 >
                   <option value="">Seleccionar...</option>
                   {users.map(u => (
-                    <option key={u.user_id} value={u.user_id}>{u.first_name} {u.last_name}</option>
+                    <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
                   ))}
                 </select>
               </div>

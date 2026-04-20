@@ -12,7 +12,7 @@ export default async function DashboardPage() {
     const { data } = await supabase
       .from('profiles')
       .select('first_name, last_name, role')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single()
     profile = data
   }
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
 
   // 5. Fetch Departments and Users for Task Modal
   const { data: departments } = await supabase.from('departments').select('department_id, name')
-  const { data: profiles } = await supabase.from('profiles').select('user_id, first_name, last_name')
+  const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name')
 
   // Format real KPIs for the client
   const now = new Date().toISOString()

@@ -6,6 +6,10 @@
     - [x] Implementar Middleware de Next.js para proteger rutas.
     - [x] Lógica de redirección basada en roles (Admin -> Todo, User -> Su Depto).
     - [x] Vincular el Header al perfil del usuario autenticado (nombre, avatar real).
+    - [x] **Gestión de Perfil de Usuario**
+        - [x] Crear vista de Opciones (`/opciones`).
+        - [x] Implementar funcionalidad para cambiar correo electrónico.
+        - [x] Implementar funcionalidad para cambiar contraseña.
 
 ## 📄 Fase 2: Matriz de Documentos (Completado)
 - [x] **Gestión de Archivos (Supabase Storage)**
