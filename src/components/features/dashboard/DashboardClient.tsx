@@ -21,7 +21,7 @@ interface Props {
   userName: string
   userRole: string
   departments: { department_id: string; name: string }[]
-  users: { user_id: string; first_name: string; last_name: string }[]
+  users: { id: string; first_name: string; last_name: string }[]
 }
 
 const metricConfig: Record<string, any> = {
@@ -36,10 +36,9 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto">
-      {/* Header logic removed as it's now in the root layout */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-black text-[#0a2d4d] tracking-tight uppercase">Panel de Control</h1>
+          <h1 className="text-2xl font-black text-[#0a2d4d] uppercase tracking-tight">Panel de Control</h1>
           <p className="text-gray-500 text-sm font-medium">Resumen operativo del Sistema de Gestión de Calidad.</p>
         </div>
         {(userRole === 'admin' || userRole === 'sub_admin') && (
@@ -54,7 +53,6 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
-          {/* Welcome Banner */}
           <div className="relative h-64 rounded-3xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white">
              <div className="relative z-10 space-y-4 max-w-md">
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-60">Operaciones DEFLUV SA</p>
@@ -67,17 +65,16 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
              </div>
           </div>
 
-          {/* Metrics Section */}
           <div className="space-y-4">
              <h3 className="text-sm font-black text-[#0a2d4d] uppercase tracking-widest">Métricas de Rendimiento</h3>
              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {kpis.map((kpi, idx) => {
                   const config = metricConfig[kpi.kpi_name] || { icon: FileCheck, color: 'text-gray-600', bg: 'bg-gray-50' }
                   return (
-                    <div key={idx} className={`p-6 bg-white rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all`}>
+                    <div key={idx} className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                        <div className="flex justify-between items-start mb-4">
                           <div className={`p-2 rounded-xl ${config.bg}`}>
-                             <config.icon className={config.color} size={24} />
+                             <config.icon className={config.iconColor || config.color} size={24} />
                           </div>
                        </div>
                        <p className="text-4xl font-black text-[#0a2d4d] mb-1">{kpi.value}{kpi.unit}</p>
@@ -89,36 +86,31 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
           </div>
         </div>
 
-        {/* Sidebar (Deadlines) */}
         <div className="space-y-8">
            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6 flex flex-col h-full">
               <h3 className="text-[10px] font-black text-[#0a2d4d] uppercase tracking-[0.2em] border-b border-gray-100 pb-4">Próximos Vencimientos</h3>
               <div className="space-y-4 flex-1">
                  {deadlines.map((d, idx) => (
                    <div key={idx} className="flex gap-4 group cursor-pointer">
-                      <div className={`w-1 rounded-full bg-blue-600 group-hover:w-1.5 transition-all`}></div>
+                      <div className="w-1 rounded-full bg-blue-600 group-hover:w-1.5 transition-all"></div>
                       <div className="flex-1 bg-gray-50 rounded-2xl p-4 flex items-center justify-between hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-gray-100">
                          <div>
                             <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{d.type}</p>
                             <p className="text-xs font-bold text-[#0a2d4d] uppercase">{d.name}</p>
                          </div>
                          <div className="text-right">
-                            <span className={`px-2 py-1 rounded-md text-[8px] font-black text-white uppercase bg-blue-600`}>
+                            <span className="px-2 py-1 rounded-md text-[8px] font-black text-white uppercase bg-blue-600">
                                {new Date(d.due_date).toLocaleDateString()}
                             </span>
                          </div>
                       </div>
                    </div>
                  ))}
-                 {deadlines.length === 0 && (
-                   <p className="text-center text-gray-400 text-xs py-8 font-bold uppercase tracking-widest">Sin vencimientos</p>
-                 )}
               </div>
            </div>
         </div>
       </div>
 
-      {/* Task Panel */}
       <div className="space-y-6">
          <h3 className="text-sm font-black text-[#0a2d4d] uppercase tracking-widest">Panel de Tareas Activas</h3>
          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
@@ -126,7 +118,6 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
                <thead>
                   <tr className="bg-gray-50/50 border-b border-gray-100">
                      <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarea</th>
-                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Plazo</th>
                      <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Prioridad</th>
                      <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Acciones</th>
                   </tr>
@@ -138,9 +129,8 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
                           <p className="text-xs font-bold text-[#0a2d4d]">{t.title}</p>
                           <p className="text-[10px] text-gray-400 font-bold uppercase">{t.description}</p>
                        </td>
-                       <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums">{new Date(t.due_date).toLocaleDateString()}</td>
                        <td className="px-8 py-6 text-center">
-                          <span className={`px-3 py-1 rounded-full text-[8px] font-black text-white tracking-widest bg-blue-600`}>
+                          <span className="px-3 py-1 rounded-full text-[8px] font-black text-white tracking-widest bg-blue-600">
                              {t.priority.toUpperCase()}
                           </span>
                        </td>

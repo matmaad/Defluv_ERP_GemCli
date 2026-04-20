@@ -9,7 +9,7 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   departments: { department_id: string; name: string }[]
-  users: { user_id: string; first_name: string; last_name: string }[]
+  users: { id: string; first_name: string; last_name: string }[]
 }
 
 export default function CreateTaskModal({ isOpen, onClose, departments, users }: Props) {

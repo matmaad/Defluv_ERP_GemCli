@@ -55,6 +55,13 @@ export default async function DashboardPage() {
     { kpi_id: '3', kpi_name: 'Documentos Totales', value: totalDocs, unit: '', date_recorded: now, created_at: now, updated_at: now },
   ]
 
+  // Type-safe map for profiles to match DashboardClient expected props
+  const formattedProfiles = profiles?.map(p => ({
+    id: p.id,
+    first_name: p.first_name,
+    last_name: p.last_name
+  })) || []
+
   return (
     <DashboardClient 
       kpis={kpis} 
@@ -63,7 +70,7 @@ export default async function DashboardPage() {
       userName={profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario'}
       userRole={profile?.role || 'regular_user'}
       departments={departments || []}
-      users={profiles || []}
+      users={formattedProfiles}
     />
   )
 }
