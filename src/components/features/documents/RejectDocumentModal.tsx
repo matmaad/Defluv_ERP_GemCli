@@ -67,17 +67,17 @@ export default function RejectDocumentModal({ isOpen, onClose, documentId, docum
 
         <form onSubmit={handleReject} className="p-8 space-y-6">
           <div className="space-y-2">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Documento Seleccionado</p>
+            <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Documento Seleccionado</p>
             <p className="text-sm font-bold text-[#0a2d4d] bg-gray-50 p-3 rounded-xl border border-gray-100">{documentTitle}</p>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Motivo del Rechazo</label>
+            <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Motivo del Rechazo</label>
             <textarea 
               required
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all text-sm font-medium resize-none"
+              className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all text-sm font-medium resize-none text-zinc-900 placeholder:text-gray-500"
               placeholder="Indique los cambios necesarios..."
             ></textarea>
           </div>

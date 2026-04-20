@@ -102,19 +102,19 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
           <form onSubmit={handleSingleSubmit} className="p-8 space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">RUT (Sin puntos, con guion)</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">RUT (Sin puntos, con guion)</label>
                 <input 
                   type="text" required value={rut} onChange={(e) => setRut(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                   placeholder="12345678-9"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Estado Inicial</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Estado Inicial</label>
                 <select 
                   value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
                 >
                   <option>Vinculado</option>
                   <option>En Suspensión</option>
@@ -123,26 +123,26 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Nombres</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Nombres</label>
                 <input 
                   type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Apellidos</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Apellidos</label>
                 <input 
                   type="text" required value={lastName} onChange={(e) => setLast(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                 />
               </div>
 
               <div className="col-span-2 space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Fecha de Ingreso</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Fecha de Ingreso</label>
                 <input 
                   type="date" required value={entryDate} onChange={(e) => setEntryDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
                 />
               </div>
             </div>

@@ -112,19 +112,19 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
           <form onSubmit={handleUpload} className="p-8 space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div className="col-span-2 space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Título del Documento</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Título del Documento</label>
                 <input 
                   type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                   placeholder="Ej: Manual de Seguridad Operativa"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Tipo de Documento</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Tipo de Documento</label>
                 <select 
                   value={docType} onChange={(e) => setDocType(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
                 >
                   <option>Protocolo</option>
                   <option>Manual</option>
@@ -134,19 +134,19 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Artículo (MOP/Norma)</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Artículo (MOP/Norma)</label>
                 <input 
                   type="text" required value={articulo} onChange={(e) => setArticulo(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                   placeholder="Ej: Art. 4.2.1"
                 />
               </div>
 
               <div className="col-span-2 space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Departamento Responsable</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Departamento Responsable</label>
                 <select 
                   required value={deptId} onChange={(e) => setDeptId(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium uppercase"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium uppercase text-zinc-900"
                 >
                   <option value="">Seleccionar Departamento</option>
                   {departments.map(d => (
@@ -156,7 +156,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
               </div>
 
               <div className="col-span-2 space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Archivo PDF</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Archivo PDF</label>
                 <div className="relative group">
                   <input 
                     type="file" required accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)}

@@ -75,12 +75,12 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
 
           <form onSubmit={handleUpdateEmail} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Correo Electrónico Actual</label>
+              <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Correo Electrónico Actual</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
               />
             </div>
             
@@ -112,25 +112,25 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
 
           <form onSubmit={handleUpdatePassword} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Nueva Contraseña</label>
+              <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Nueva Contraseña</label>
               <input 
                 type="password" 
                 required
                 minLength={6}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Confirmar Contraseña</label>
+              <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Confirmar Contraseña</label>
               <input 
                 type="password" 
                 required
                 minLength={6}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
               />
             </div>
             

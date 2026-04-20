@@ -127,23 +127,23 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
         ) : (
           <form onSubmit={handleReplace} className="p-8 space-y-6">
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Documento actual</p>
+              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Documento actual</p>
               <p className="text-sm font-bold text-[#0a2d4d] bg-gray-50 p-3 rounded-xl border border-gray-100">{documentTitle}</p>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Justificación del Cambio (Obligatorio)</label>
+              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Justificación del Cambio (Obligatorio)</label>
               <textarea 
                 required
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full h-24 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium resize-none"
+                className="w-full h-24 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium resize-none text-zinc-900 placeholder:text-gray-500"
                 placeholder="Indique por qué está reemplazando este archivo..."
               ></textarea>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Nueva Versión (PDF)</label>
+              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Nueva Versión (PDF)</label>
               <div className="relative group">
                 <input 
                   type="file" required accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)}

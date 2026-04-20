@@ -109,29 +109,29 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
         ) : (
           <form onSubmit={handleCreate} className="p-8 space-y-5">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Título de la Tarea</label>
+              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Título de la Tarea</label>
               <input 
                 type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                 placeholder="Ej: Revisión de Protocolo de Excavación"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Descripción</label>
+              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Descripción</label>
               <textarea 
                 value={desc} onChange={(e) => setDesc(e.target.value)}
-                className="w-full h-20 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium resize-none"
+                className="w-full h-20 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium resize-none text-zinc-900 placeholder:text-gray-500"
                 placeholder="Detalles adicionales de la asignación..."
               ></textarea>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Departamento</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Departamento</label>
                 <select 
                   required value={deptId} onChange={(e) => setDeptId(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium uppercase"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium uppercase text-zinc-900"
                 >
                   <option value="">Seleccionar...</option>
                   {departments.map(d => (
@@ -141,10 +141,10 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Responsable</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Responsable</label>
                 <select 
                   required value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium uppercase"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium uppercase text-zinc-900"
                 >
                   <option value="">Seleccionar...</option>
                   {users.map(u => (
@@ -154,18 +154,18 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Fecha Límite</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Fecha Límite</label>
                 <input 
                   type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Prioridad</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Prioridad</label>
                 <select 
                   value={priority} onChange={(e) => setPriority(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
                 >
                   <option>Baja</option>
                   <option>Estándar</option>
@@ -176,7 +176,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Archivo de Instrucción (PDF)</label>
+              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Archivo de Instrucción (PDF)</label>
               <div className="relative group">
                 <input 
                   type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)}

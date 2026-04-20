@@ -187,7 +187,7 @@ export default function AuditClient({ initialLogs }: Props) {
                        value={input}
                        onChange={(e) => setInput(e.target.value)}
                        placeholder="Consultar sobre ISO-9001 o el archivo..." 
-                       className="w-full bg-white border border-gray-200 rounded-2xl pl-6 pr-14 py-4 text-xs font-medium outline-none focus:ring-4 focus:ring-[#0a2d4d]/5 focus:border-[#0a2d4d] transition-all shadow-inner"
+                       className="w-full bg-white border border-gray-200 rounded-2xl pl-6 pr-14 py-4 text-xs font-medium outline-none focus:ring-4 focus:ring-[#0a2d4d]/5 focus:border-[#0a2d4d] transition-all shadow-inner text-zinc-900 placeholder:text-gray-500"
                     />
                     <button 
                       type="submit"

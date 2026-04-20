@@ -64,7 +64,7 @@ export default function LoginPage() {
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Correo Electrónico</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Correo Electrónico</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input 
@@ -72,14 +72,14 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm text-zinc-900 placeholder:text-gray-500 font-medium"
                     placeholder="ejemplo@defluv.cl"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Contraseña</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Contraseña</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input 
@@ -87,7 +87,7 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm text-zinc-900 placeholder:text-gray-500 font-medium"
                     placeholder="••••••••"
                   />
                 </div>
@@ -97,7 +97,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between px-1">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input type="checkbox" className="w-4 h-4 rounded border-gray-200 text-[#0a2d4d] focus:ring-blue-500" />
-                <span className="text-[10px] font-bold text-gray-400 group-hover:text-gray-600 uppercase tracking-wider">Recordarme</span>
+                <span className="text-[10px] font-bold text-gray-600 group-hover:text-gray-800 uppercase tracking-wider transition-colors">Recordarme</span>
               </label>
               <button type="button" className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider">¿Olvidaste tu clave?</button>
             </div>
