@@ -38,11 +38,11 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
-      <body className={`${inter.className} flex bg-gray-50 min-h-screen`}>
+      <body className={`${inter.className} flex bg-gray-50 h-screen overflow-hidden`}>
         {user ? (
           <>
             <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
               <Header user={profile} />
               <main className="flex-1 overflow-y-auto">
                 {children}
@@ -50,7 +50,7 @@ export default async function RootLayout({
             </div>
           </>
         ) : (
-          <main className="flex-1">
+          <main className="flex-1 h-full overflow-y-auto">
             {children}
           </main>
         )}
