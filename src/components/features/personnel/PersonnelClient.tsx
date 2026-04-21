@@ -121,73 +121,75 @@ export default function PersonnelClient({ records }: Props) {
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Listado de Colaboradores</h3>
            <div className="flex gap-2">
-              <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Exportar Excel</button>
+              <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all whitespace-nowrap">Exportar Excel</button>
            </div>
         </div>
-        <table className="w-full text-left border-collapse text-[#0a2d4d]">
-          <thead>
-            <tr className="bg-gray-50/50 border-b border-gray-100">
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Nombre</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Apellido</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-center">RUT</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Cargo</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Centro de Costos</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-center">Estado</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Fecha Ingreso</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50 font-medium">
-            {records.map((p, idx) => (
-              <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                <td className="px-8 py-6 text-xs font-black uppercase">{p.first_name}</td>
-                <td className="px-8 py-6 text-xs font-black uppercase">{p.last_name}</td>
-                <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums tracking-tighter text-center">{formatRut(p.rut)}</td>
-                <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{p.cargo}</td>
-                <td className="px-8 py-6 text-[10px] font-black uppercase text-gray-500">{p.centro_costos}</td>
-                <td className="px-8 py-6 text-center">
-                  <span className={`px-3 py-1 rounded-full text-[8px] font-black border ${statusStyles[p.status]} uppercase tracking-widest`}>
-                    {p.status}
-                  </span>
-                </td>
-                <td className="px-8 py-6 text-xs font-bold text-gray-400">{new Date(p.entry_date).toLocaleDateString()}</td>
-                <td className="px-8 py-6 text-right">
-                  <div className="flex justify-end gap-3 text-gray-300">
-                    <button 
-                      onClick={() => setViewDocsModal(p)}
-                      className="p-1 hover:text-[#0a2d4d] transition-colors" 
-                      title="Ver Documentos"
-                    >
-                      <FileText size={18} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(p.id, `${p.first_name} ${p.last_name}`)}
-                      disabled={deletingId === p.id}
-                      className="p-1 hover:text-red-600 transition-colors disabled:opacity-50"
-                      title="Eliminar Registro"
-                    >
-                      {deletingId === p.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
-                    </button>
-                    <button 
-                      onClick={() => setUploadModalDoc({id: p.id, name: `${p.first_name} ${p.last_name}`})}
-                      className="p-1 hover:text-blue-600 transition-colors" 
-                      title="Agregar Documentación"
-                    >
-                      <Plus size={18} />
-                    </button>
-                  </div>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-[#0a2d4d] min-w-[1000px]">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Nombre</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Apellido</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-center">RUT</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Cargo</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Centro de Costos</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-center">Estado</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Fecha Ingreso</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-right">Acciones</th>
               </tr>
-            ))}
-            {records.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-8 py-12 text-center text-gray-400 text-sm font-bold uppercase tracking-widest">
-                  No hay registros de personal disponibles.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-50 font-medium">
+              {records.map((p, idx) => (
+                <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-8 py-6 text-xs font-black uppercase whitespace-nowrap">{p.first_name}</td>
+                  <td className="px-8 py-6 text-xs font-black uppercase whitespace-nowrap">{p.last_name}</td>
+                  <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums tracking-tighter text-center whitespace-nowrap">{formatRut(p.rut)}</td>
+                  <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600 whitespace-nowrap">{p.cargo}</td>
+                  <td className="px-8 py-6 text-[10px] font-black uppercase text-gray-500 whitespace-nowrap">{p.centro_costos}</td>
+                  <td className="px-8 py-6 text-center whitespace-nowrap">
+                    <span className={`px-3 py-1 rounded-full text-[8px] font-black border ${statusStyles[p.status]} uppercase tracking-widest`}>
+                      {p.status}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6 text-xs font-bold text-gray-400 whitespace-nowrap">{new Date(p.entry_date).toLocaleDateString()}</td>
+                  <td className="px-8 py-6 text-right whitespace-nowrap">
+                    <div className="flex justify-end gap-3 text-gray-300">
+                      <button 
+                        onClick={() => setViewDocsModal(p)}
+                        className="p-1 hover:text-[#0a2d4d] transition-colors" 
+                        title="Ver Documentos"
+                      >
+                        <FileText size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(p.id, `${p.first_name} ${p.last_name}`)}
+                        disabled={deletingId === p.id}
+                        className="p-1 hover:text-red-600 transition-colors disabled:opacity-50"
+                        title="Eliminar Registro"
+                      >
+                        {deletingId === p.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                      </button>
+                      <button 
+                        onClick={() => setUploadModalDoc({id: p.id, name: `${p.first_name} ${p.last_name}`})}
+                        className="p-1 hover:text-blue-600 transition-colors" 
+                        title="Agregar Documentación"
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {records.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-8 py-12 text-center text-gray-400 text-sm font-bold uppercase tracking-widest">
+                    No hay registros de personal disponibles.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Info Card */}
