@@ -167,7 +167,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
                     className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-[#0a2d4d] group-hover:bg-blue-50 transition-all"
                   >
                     <FileUp size={24} className="text-gray-400 group-hover:text-[#0a2d4d] mb-2" />
-                    <span className="text-[10px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest">
+                    <span className="text-[10px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest text-center px-6 break-all">
                       {file ? file.name : 'Haz clic para seleccionar PDF'}
                     </span>
                     <span className="text-[8px] text-gray-400 mt-1 uppercase tracking-tighter">Máximo 25MB • Formato PDF</span>

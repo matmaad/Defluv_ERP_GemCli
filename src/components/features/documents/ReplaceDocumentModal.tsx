@@ -109,10 +109,10 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50/50">
           <div className="flex items-center gap-3 text-blue-600">
              <FileUp size={20} />
-             <h3 className="text-sm font-bold uppercase tracking-widest">Reemplazar Documento</h3>
+             <h3 className="text-sm font-bold uppercase tracking-widest text-[#0a2d4d]">Reemplazar Documento</h3>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <X size={20} className="text-gray-400" />
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+            <X size={20} />
           </button>
         </div>
 
@@ -127,12 +127,12 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
         ) : (
           <form onSubmit={handleReplace} className="p-8 space-y-6">
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Documento actual</p>
+              <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Documento actual</p>
               <p className="text-sm font-bold text-[#0a2d4d] bg-gray-50 p-3 rounded-xl border border-gray-100">{documentTitle}</p>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Justificación del Cambio (Obligatorio)</label>
+              <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Justificación del Cambio (Obligatorio)</label>
               <textarea 
                 required
                 value={reason}
@@ -143,7 +143,7 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Nueva Versión (PDF)</label>
+              <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Nueva Versión (PDF)</label>
               <div className="relative group">
                 <input 
                   type="file" required accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)}
@@ -151,10 +151,10 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
                 />
                 <label 
                   htmlFor="file-replace"
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-blue-400 group-hover:bg-blue-50 transition-all"
+                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-blue-400 group-hover:bg-blue-50 transition-all px-6"
                 >
                   <FileUp size={20} className="text-gray-400 group-hover:text-blue-500 mb-1" />
-                  <span className="text-[10px] font-bold text-gray-400 group-hover:text-blue-600 uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-gray-400 group-hover:text-blue-600 uppercase tracking-wider text-center break-all">
                     {file ? file.name : 'Seleccionar nuevo PDF'}
                   </span>
                 </label>
@@ -164,13 +164,13 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
             <div className="flex gap-4">
                <button 
                 type="button" onClick={onClose}
-                className="flex-1 py-3.5 border border-gray-200 rounded-xl text-[10px] font-bold text-gray-400 hover:bg-gray-50 transition-all uppercase tracking-widest"
+                className="flex-1 py-3.5 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 hover:bg-gray-50 transition-all uppercase tracking-widest"
                >
                  Cancelar
                </button>
                <button 
                 type="submit" disabled={loading || !file || !reason}
-                className="flex-[2] py-3.5 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-[2] py-3.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/30 hover:bg-blue-900 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                >
                  {loading ? <Loader2 size={16} className="animate-spin" /> : 'Subir Nueva Versión'}
                </button>

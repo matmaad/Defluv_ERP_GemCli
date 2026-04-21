@@ -68,7 +68,7 @@ export default function UploadPersonnelDocumentModal({ isOpen, onClose, personne
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="bg-white w-full max-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-3 text-[#0a2d4d]">
@@ -122,13 +122,13 @@ export default function UploadPersonnelDocumentModal({ isOpen, onClose, personne
                   />
                   <label 
                     htmlFor="personnel-file"
-                    className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-[#0a2d4d] group-hover:bg-blue-50 transition-all"
+                    className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-[#0a2d4d] group-hover:bg-blue-50 transition-all px-6"
                   >
                     <div className="flex gap-2 mb-3">
                        <FileText size={24} className="text-gray-300" />
                        <FileSpreadsheet size={24} className="text-gray-300" />
                     </div>
-                    <span className="text-[10px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest text-center px-4">
+                    <span className="text-[10px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest text-center break-all">
                       {file ? file.name : 'Haz clic para subir (PDF, TXT, Excel, Word)'}
                     </span>
                     <span className="text-[8px] text-gray-400 mt-2 uppercase tracking-tighter">Máximo 10MB</span>
