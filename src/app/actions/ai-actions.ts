@@ -6,6 +6,10 @@ import { createClient } from '@/utils/supabase/server'
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
 
 export async function analyzeDocument(storagePath: string | null, documentTitle: string, userQuestion: string) {
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    console.error('AI Error: GOOGLE_GENERATIVE_AI_API_KEY is not defined in environment variables.')
+    return { error: 'Error de configuración: Clave de API no encontrada.' }
+  }
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
     const supabase = await createClient()
@@ -30,7 +34,7 @@ export async function analyzeDocument(storagePath: string | null, documentTitle:
     }
 
     const prompt = `
-      Eres el SGC-Bot, un experto en Sistemas de Gestión de Calidad (SGC) y normas ISO-9001 para la constructora DEFLUV SA.
+      Eres DEFLUVOT, un experto en Sistemas de Gestión de Calidad (SGC) y normas ISO-9001 para la constructora DEFLUV SA.
       
       CONTEXTO:
       - Documento analizado: "${documentTitle}"

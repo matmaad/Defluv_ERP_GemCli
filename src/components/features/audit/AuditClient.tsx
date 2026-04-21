@@ -302,12 +302,12 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
               </div>
            </div>
 
-           {/* SGC-Bot Sidebar */}
+           {/* DEFLUVOT Sidebar */}
            <div className="w-[450px] bg-white border-l border-gray-100 flex flex-col shadow-2xl relative z-10">
               <div className="p-8 border-b border-gray-50 flex items-center gap-4 bg-gray-50/50 text-[#0a2d4d]">
                  <div className="w-12 h-12 rounded-xl bg-[#0a2d4d] flex items-center justify-center shadow-lg shadow-blue-900/20"><Bot className="text-white" size={28} /></div>
                  <div>
-                    <h3 className="text-sm font-black uppercase tracking-widest">SGC-Bot</h3>
+                    <h3 className="text-sm font-black uppercase tracking-widest">DEFLUVOT</h3>
                     <p className="text-[9px] font-bold text-green-600 uppercase tracking-tighter animate-pulse">● IA Activa</p>
                  </div>
               </div>
