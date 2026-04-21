@@ -11,7 +11,7 @@ export async function analyzeDocument(storagePath: string | null, documentTitle:
     return { error: 'Error de configuración: Clave de API no encontrada.' }
   }
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
     const supabase = await createClient()
 
     let filePart = null
