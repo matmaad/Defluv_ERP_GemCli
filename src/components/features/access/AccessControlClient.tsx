@@ -15,6 +15,7 @@ import { Profile, Department, Permission } from '@/app/types/database'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 import RegisterUserModal from './RegisterUserModal'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   profiles: Profile[]
@@ -71,6 +72,14 @@ export default function AccessControlClient({ profiles, departments, permissions
         .upsert(userPerms, { onConflict: 'user_id, department_id' })
 
       if (error) throw error
+
+      await logAction(
+        'Actualización de Permisos',
+        'Permisos',
+        selectedUser.id,
+        { permissions: userPerms },
+        `Se actualizaron los permisos para el usuario ${selectedUser.first_name} ${selectedUser.last_name}`
+      )
 
       setChanged(false)
       alert('Permisos actualizados correctamente.')

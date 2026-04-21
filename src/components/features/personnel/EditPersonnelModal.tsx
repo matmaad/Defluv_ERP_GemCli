@@ -5,6 +5,7 @@ import { X, Edit3, Loader2, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 import { PersonalRecord } from '@/app/types/database'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   isOpen: boolean
@@ -93,6 +94,18 @@ export default function EditPersonnelModal({ isOpen, onClose, record }: Props) {
         .eq('id', record.id)
 
       if (error) throw error
+
+      await logAction(
+        'UPDATE',
+        'personnel',
+        record.id,
+        { 
+          old_status: record.status, 
+          new_status: status,
+          updates: { firstName, lastName, cargo, centroCostos }
+        },
+        comment || `Actualización de datos de colaborador: ${firstName} ${lastName}`
+      )
 
       setSuccess(true)
       setTimeout(() => {

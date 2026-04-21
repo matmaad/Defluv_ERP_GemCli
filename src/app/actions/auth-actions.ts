@@ -2,13 +2,26 @@
 
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/server'
+import { logActionServer } from '@/utils/audit-server'
 
 export async function updateEmailAction(newEmail: string) {
   const supabase = await createClient()
 
   try {
+    const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.auth.updateUser({ email: newEmail })
     if (error) return { error: error.message }
+    
+    if (user) {
+      await logActionServer(
+        'Cambio de Correo',
+        'Perfil',
+        user.id,
+        `Usuario cambió su correo a ${newEmail}`,
+        { newEmail }
+      )
+    }
+
     return { success: true }
   } catch (err) {
     return { error: 'Error al actualizar el correo' }
@@ -19,8 +32,19 @@ export async function updatePasswordAction(newPassword: string) {
   const supabase = await createClient()
 
   try {
+    const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) return { error: error.message }
+
+    if (user) {
+      await logActionServer(
+        'Cambio de Contraseña',
+        'Perfil',
+        user.id,
+        'Usuario cambió su contraseña'
+      )
+    }
+
     return { success: true }
   } catch (err) {
     return { error: 'Error al actualizar la contraseña' }
@@ -56,6 +80,14 @@ export async function registerUserAction(userData: any) {
     if (profileError) {
       return { error: 'Auth created, but profile failed: ' + profileError.message }
     }
+
+    await logActionServer(
+      'Registro de Operador',
+      'Perfil',
+      authData.user.id,
+      `Se registró un nuevo operador: ${userData.first_name} ${userData.last_name} (${userData.email})`,
+      { role: userData.role }
+    )
 
     return { success: true }
     

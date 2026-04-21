@@ -22,6 +22,7 @@ import ViewPersonnelDocumentsModal from './ViewPersonnelDocumentsModal'
 import EditPersonnelModal from './EditPersonnelModal'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   records: PersonalRecord[]
@@ -68,6 +69,14 @@ export default function PersonnelClient({ records, userRole }: Props) {
         .eq('id', recordId)
 
       if (error) throw error
+
+      await logAction(
+        'DELETE',
+        'personnel',
+        recordId,
+        { name },
+        `Eliminación de colaborador: ${name}`
+      )
 
       router.refresh()
     } catch (error) {

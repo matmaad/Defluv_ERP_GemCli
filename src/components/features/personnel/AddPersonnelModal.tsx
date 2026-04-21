@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { X, UserPlus, Loader2, CheckCircle2, FileSpreadsheet, Calendar } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   isOpen: boolean
@@ -58,7 +59,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
     setLoading(true)
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('personal_records')
         .insert({
           rut,
@@ -69,8 +70,18 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
           entry_date: entryDate,
           status
         })
+        .select()
+        .single()
 
       if (error) throw error
+
+      await logAction(
+        'CREATE',
+        'personnel',
+        data.id,
+        { rut, name: `${firstName} ${lastName}`, cargo },
+        `Registro de nuevo colaborador: ${firstName} ${lastName}`
+      )
 
       setSuccess(true)
       setTimeout(() => {

@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { X, FileUp, Loader2, CheckCircle2, Calendar } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   isOpen: boolean
@@ -46,7 +47,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
 
       if (uploadError) throw uploadError
 
-      const { error: dbError } = await supabase
+      const { data, error: dbError } = await supabase
         .from('documents')
         .insert({
           title,
@@ -62,8 +63,18 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
           current_status: 'Pendiente',
           due_date: dueDate || null
         })
+        .select()
+        .single()
 
       if (dbError) throw dbError
+
+      await logAction(
+        'UPLOAD',
+        'document',
+        data.id,
+        { title, docType, fileName: file.name },
+        `Subida de documento: ${title}`
+      )
 
       setSuccess(true)
       setTimeout(() => {

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   isOpen: boolean
@@ -41,6 +42,14 @@ export default function RejectDocumentModal({ isOpen, onClose, documentId, docum
         .eq('id', documentId)
 
       if (error) throw error
+
+      await logAction(
+        'REJECT',
+        'document',
+        documentId,
+        { title: documentTitle },
+        comment
+      )
 
       onClose()
       router.refresh()

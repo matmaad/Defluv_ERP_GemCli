@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { X, FileUp, Loader2, CheckCircle2, FileText, FileSpreadsheet, File } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   isOpen: boolean
@@ -50,6 +51,14 @@ export default function UploadPersonnelDocumentModal({ isOpen, onClose, personne
         .eq('id', personnelId)
 
       if (dbError) throw dbError
+
+      await logAction(
+        'UPLOAD_DOC',
+        'personnel',
+        personnelId,
+        { docType, fileName: file.name },
+        `Carga de documento (${docType}) para colaborador: ${personnelName}`
+      )
 
       setSuccess(true)
       setTimeout(() => {

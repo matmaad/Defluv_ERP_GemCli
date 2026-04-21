@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { X, FileUp, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   isOpen: boolean
@@ -87,6 +88,14 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
         .eq('id', documentId)
 
       if (dbError) throw dbError
+
+      await logAction(
+        'REPLACE_VERSION',
+        'document',
+        documentId,
+        { title: documentTitle, newFileName: file.name },
+        reason
+      )
 
       setSuccess(true)
       setTimeout(() => {

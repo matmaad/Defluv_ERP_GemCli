@@ -26,6 +26,7 @@ import RejectDocumentModal from './RejectDocumentModal'
 import ReplaceDocumentModal from './ReplaceDocumentModal'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   initialDocuments: DocumentWithDetails[]
@@ -79,8 +80,18 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
   const handleApprove = async (docId: string) => {
     setActionLoading(docId)
     try {
+      const doc = initialDocuments.find(d => d.id === docId)
       const { error } = await supabase.from('documents').update({ current_status: 'Aprobado' }).eq('id', docId)
       if (error) throw error
+
+      await logAction(
+        'APPROVE',
+        'document',
+        docId,
+        { title: doc?.title },
+        `Aprobación de documento: ${doc?.title || docId}`
+      )
+
       router.refresh()
     } catch (error) {
       console.error('Error approving:', error)

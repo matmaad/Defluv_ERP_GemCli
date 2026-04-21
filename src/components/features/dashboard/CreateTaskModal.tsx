@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { X, ClipboardList, Loader2, CheckCircle2, FileUp } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { logAction } from '@/utils/audit-helper'
 
 interface Props {
   isOpen: boolean
@@ -54,7 +55,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
         if (uploadError) throw uploadError
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tasks')
         .insert({
           title,
@@ -67,8 +68,18 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
           instruction_file_path: filePath,
           status: 'Pendiente'
         })
+        .select()
+        .single()
 
       if (error) throw error
+
+      await logAction(
+        'Creación de Tarea',
+        'Tareas',
+        data.id,
+        { title, assignedTo, priority },
+        `Se creó la tarea: ${title}`
+      )
 
       setSuccess(true)
       setTimeout(() => {
