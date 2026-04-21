@@ -92,7 +92,7 @@ export default function AuditClient({ initialLogs }: Props) {
       )}
 
       {!selectedDoc ? (
-        <div className="flex-1 p-8 pt-0 space-y-6 overflow-y-auto">
+        <div className="flex-1 p-8 space-y-6 overflow-y-auto">
            {/* Table */}
            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
               <table className="w-full text-left border-collapse text-[#0a2d4d]">
