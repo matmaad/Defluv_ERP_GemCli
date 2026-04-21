@@ -17,6 +17,7 @@ import {
 import { PersonalRecord } from '@/app/types/database'
 import AddPersonnelModal from './AddPersonnelModal'
 import UploadPersonnelDocumentModal from './UploadPersonnelDocumentModal'
+import ViewPersonnelDocumentsModal from './ViewPersonnelDocumentsModal'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 
@@ -33,6 +34,7 @@ const statusStyles: Record<string, string> = {
 export default function PersonnelClient({ records }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [uploadModalDoc, setUploadModalDoc] = useState<{id: string, name: string} | null>(null)
+  const [viewDocsModal, setViewDocsModal] = useState<PersonalRecord | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   
   const supabase = createClient()
@@ -141,7 +143,13 @@ export default function PersonnelClient({ records }: Props) {
                 <td className="px-8 py-6 text-xs font-bold text-gray-400">{new Date(p.entry_date).toLocaleDateString()}</td>
                 <td className="px-8 py-6 text-right">
                   <div className="flex justify-end gap-3 text-gray-300">
-                    <button className="p-1 hover:text-[#0a2d4d] transition-colors" title="Ver Documentos"><FileText size={18} /></button>
+                    <button 
+                      onClick={() => setViewDocsModal(p)}
+                      className="p-1 hover:text-[#0a2d4d] transition-colors" 
+                      title="Ver Documentos"
+                    >
+                      <FileText size={18} />
+                    </button>
                     <button 
                       onClick={() => handleDelete(p.id, `${p.first_name} ${p.last_name}`)}
                       disabled={deletingId === p.id}
@@ -193,6 +201,14 @@ export default function PersonnelClient({ records }: Props) {
         onClose={() => setUploadModalDoc(null)}
         personnelId={uploadModalDoc?.id || ''}
         personnelName={uploadModalDoc?.name || ''}
+      />
+
+      <ViewPersonnelDocumentsModal 
+        isOpen={!!viewDocsModal}
+        onClose={() => setViewDocsModal(null)}
+        personnelName={`${viewDocsModal?.first_name} ${viewDocsModal?.last_name}`}
+        cvPath={viewDocsModal?.cv_storage_path}
+        certPath={viewDocsModal?.certificates_storage_path}
       />
     </div>
   )
