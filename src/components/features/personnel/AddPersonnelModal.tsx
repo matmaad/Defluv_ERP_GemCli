@@ -23,7 +23,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
   const [lastName, setLast] = useState('')
   const [cargo, setCargo] = useState(CARGOS[0])
   const [centroCostos, setCentroCostos] = useState('')
-  const [entryDate, setEntryDate] = useState('')
+  const [entryDate, setEntryDate] = useState('') // Internal format: DD/MM/YYYY
   const [status, setStatus] = useState('Vinculado')
 
   const supabase = createClient()
@@ -53,9 +53,41 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
     }
   }
 
+  // Función para formatear Fecha mientras se escribe (DD/MM/YYYY)
+  const formatDateInput = (value: string) => {
+    let clean = value.replace(/[^0-9]/g, '')
+    if (clean.length === 0) return ''
+    
+    let day = clean.slice(0, 2)
+    let month = clean.slice(2, 4)
+    let year = clean.slice(4, 8)
+
+    if (clean.length <= 2) return day
+    if (clean.length <= 4) return `${day}/${month}`
+    return `${day}/${month}/${year}`
+  }
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value
+    const rawValue = input.replace(/[^0-9]/g, '')
+    if (rawValue.length <= 8) {
+      setEntryDate(formatDateInput(rawValue))
+    }
+  }
+
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+
+    // Convert DD/MM/YYYY to YYYY-MM-DD for Supabase
+    const dateParts = entryDate.split('/')
+    if (dateParts.length !== 3) {
+      alert('Por favor, ingrese una fecha válida en formato DD/MM/YYYY')
+      setLoading(false)
+      return
+    }
+    const isoDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+
     try {
       const { error } = await supabase
         .from('personal_records')
@@ -65,7 +97,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
           last_name: lastName,
           cargo,
           centro_costos: centroCostos,
-          entry_date: entryDate,
+          entry_date: isoDate,
           status
         })
 
@@ -94,7 +126,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
                 <UserPlus size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-black uppercase tracking-widest">Gestionar Personal</h3>
+                <h3 className="text-sm font-bold text-[#0a2d4d] uppercase tracking-widest">Gestionar Personal</h3>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Matriz de Recursos Humanos</p>
              </div>
           </div>
@@ -106,13 +138,13 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
         <div className="flex bg-gray-50 p-1 m-6 mb-0 rounded-xl border border-gray-100">
            <button 
             onClick={() => setMode('single')}
-            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'single' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${mode === 'single' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
            >
              Ingreso Individual
            </button>
            <button 
             onClick={() => setMode('bulk')}
-            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'bulk' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${mode === 'bulk' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
            >
              Carga Masiva (CSV)
            </button>
@@ -188,10 +220,11 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
               </div>
 
               <div className="col-span-2 space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha de Ingreso</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha de Ingreso (DD/MM/YYYY)</label>
                 <input 
-                  type="date" required value={entryDate} onChange={(e) => setEntryDate(e.target.value)}
+                  type="text" required value={entryDate} onChange={handleDateChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  placeholder="DD/MM/YYYY"
                 />
               </div>
             </div>

@@ -95,17 +95,15 @@ export default function PersonnelClient({ records }: Props) {
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans text-[#0a2d4d]">
       {/* Summary Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 relative h-56 rounded-3xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white">
+        <div className="lg:col-span-2 relative h-32 rounded-3xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white shadow-lg">
            <div className="absolute inset-0 opacity-10 pointer-events-none">
-              <UserCircle className="absolute -right-8 -bottom-8 w-64 h-64 text-white" />
+              <UserCircle className="absolute -right-8 -bottom-8 w-48 h-48 text-white" />
            </div>
            <div className="relative z-10 w-full">
-              <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-60 mb-2">Resumen Operativo</p>
-              <h2 className="text-4xl font-black mb-8 tracking-tighter">PERSONAL EXTERNO</h2>
-              <div className="flex gap-12">
+              <div className="flex gap-16">
                  {stats.map((s, idx) => (
                    <div key={idx}>
-                      <p className="text-4xl font-black">{s.value}</p>
+                      <p className="text-3xl font-black tracking-tight">{s.value}</p>
                       <p className="text-[9px] font-bold opacity-60 tracking-[0.1em] uppercase">{s.label}</p>
                    </div>
                  ))}
