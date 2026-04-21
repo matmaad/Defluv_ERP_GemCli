@@ -117,14 +117,14 @@ export default function PersonnelClient({ records, userRole }: Props) {
 
         <div 
           onClick={() => setIsAddModalOpen(true)}
-          className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center text-center space-y-4 hover:shadow-md transition-all cursor-pointer group border-b-4 border-b-[#0a2d4d]"
+          className="bg-white rounded-3xl border border-gray-100 shadow-sm h-32 flex flex-col items-center justify-center text-center space-y-2 hover:shadow-md transition-all cursor-pointer group border-b-4 border-b-[#0a2d4d]"
         >
-           <div className="p-4 bg-gray-50 rounded-2xl group-hover:bg-[#0a2d4d] group-hover:text-white transition-all shadow-inner">
-              <UserPlus size={32} />
+           <div className="p-2 bg-gray-50 rounded-xl group-hover:bg-[#0a2d4d] group-hover:text-white transition-all shadow-inner">
+              <UserPlus size={24} />
            </div>
            <div>
-              <p className="text-xs font-black uppercase tracking-widest">Nuevo Registro</p>
-              <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Carga individual o masiva</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#0a2d4d]">Nuevo Registro</p>
+              <p className="text-[8px] text-gray-400 font-bold uppercase mt-0.5">Carga individual o masiva</p>
            </div>
         </div>
       </div>

@@ -42,20 +42,16 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-black text-[#0a2d4d] uppercase tracking-tight leading-none mb-1">Panel de Control</h1>
-          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Resumen operativo del SGC.</p>
-        </div>
-        {(userRole === 'admin' || userRole === 'sub_admin') && (
+      {(userRole === 'admin' || userRole === 'sub_admin') && (
+        <div className="flex justify-end">
           <button 
             onClick={() => setIsCreateTaskOpen(true)}
             className="px-6 py-3 bg-[#0a2d4d] text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-900 transition-all flex items-center gap-2"
           >
             <Plus size={18} /> Asignar Tarea
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
