@@ -45,7 +45,7 @@ export default async function DashboardPage() {
 
   // 5. Fetch Departments and Users for Task Modal
   const { data: departments } = await supabase.from('departments').select('id, name')
-  const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name')
+  const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name, department_id')
 
   // Format real KPIs for the client
   const now = new Date().toISOString()
@@ -59,7 +59,8 @@ export default async function DashboardPage() {
   const formattedProfiles = profiles?.map(p => ({
     id: p.id,
     first_name: p.first_name,
-    last_name: p.last_name
+    last_name: p.last_name,
+    department_id: p.department_id
   })) || []
 
   return (
