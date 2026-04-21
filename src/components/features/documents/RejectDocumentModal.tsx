@@ -44,7 +44,7 @@ export default function RejectDocumentModal({ isOpen, onClose, documentId, docum
       if (error) throw error
 
       await logAction(
-        'REJECT',
+        'RECHAZO',
         'document',
         documentId,
         { title: documentTitle },

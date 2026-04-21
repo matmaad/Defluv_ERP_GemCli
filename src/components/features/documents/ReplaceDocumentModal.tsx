@@ -90,7 +90,7 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
       if (dbError) throw dbError
 
       await logAction(
-        'REPLACE_VERSION',
+        'REEMPLAZO DE VERSIÓN',
         'document',
         documentId,
         { title: documentTitle, newFileName: file.name },

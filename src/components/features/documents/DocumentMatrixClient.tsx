@@ -85,7 +85,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
       if (error) throw error
 
       await logAction(
-        'APPROVE',
+        'APROBACIÓN',
         'document',
         docId,
         { title: doc?.title },

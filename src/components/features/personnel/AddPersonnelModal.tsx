@@ -76,7 +76,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
       if (error) throw error
 
       await logAction(
-        'CREATE',
+        'CREACIÓN',
         'personnel',
         data.id,
         { rut, name: `${firstName} ${lastName}`, cargo },

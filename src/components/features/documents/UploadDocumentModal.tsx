@@ -69,7 +69,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
       if (dbError) throw dbError
 
       await logAction(
-        'UPLOAD',
+        'CARGA',
         'document',
         data.id,
         { title, docType, fileName: file.name },

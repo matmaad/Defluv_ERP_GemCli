@@ -14,7 +14,7 @@ export async function updateEmailAction(newEmail: string) {
     
     if (user) {
       await logActionServer(
-        'Cambio de Correo',
+        'CAMBIO DE CORREO',
         'Perfil',
         user.id,
         `Usuario cambió su correo a ${newEmail}`,
@@ -38,7 +38,7 @@ export async function updatePasswordAction(newPassword: string) {
 
     if (user) {
       await logActionServer(
-        'Cambio de Contraseña',
+        'CAMBIO DE CONTRASEÑA',
         'Perfil',
         user.id,
         'Usuario cambió su contraseña'
@@ -82,7 +82,7 @@ export async function registerUserAction(userData: any) {
     }
 
     await logActionServer(
-      'Registro de Operador',
+      'REGISTRO DE USUARIO',
       'Perfil',
       authData.user.id,
       `Se registró un nuevo operador: ${userData.first_name} ${userData.last_name} (${userData.email})`,

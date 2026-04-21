@@ -53,7 +53,7 @@ export default function UploadPersonnelDocumentModal({ isOpen, onClose, personne
       if (dbError) throw dbError
 
       await logAction(
-        'UPLOAD_DOC',
+        'CARGA DE DOCUMENTO',
         'personnel',
         personnelId,
         { docType, fileName: file.name },

@@ -71,7 +71,7 @@ export default function PersonnelClient({ records, userRole }: Props) {
       if (error) throw error
 
       await logAction(
-        'DELETE',
+        'ELIMINACIÓN',
         'personnel',
         recordId,
         { name },

@@ -74,7 +74,7 @@ export default function AccessControlClient({ profiles, departments, permissions
       if (error) throw error
 
       await logAction(
-        'Actualización de Permisos',
+        'CAMBIO DE PERMISOS',
         'Permisos',
         selectedUser.id,
         { permissions: userPerms },

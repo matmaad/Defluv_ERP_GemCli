@@ -96,7 +96,7 @@ export default function EditPersonnelModal({ isOpen, onClose, record }: Props) {
       if (error) throw error
 
       await logAction(
-        'UPDATE',
+        'ACTUALIZACIÓN',
         'personnel',
         record.id,
         { 
