@@ -241,7 +241,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                  </div>
               </div>
               <div className="bg-[#0a2d4d] p-6 flex justify-end items-center px-12">
-                 <button onClick={() => setSelectedDoc(null)} className="px-8 py-3 bg-white text-[#0a2d4d] hover:bg-gray-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"><CheckCircle size={16} /> Finalizar Revisión</button>
+                 <button onClick={() => setSelectedDoc(null)} className="px-8 py-3 bg-white text-[#0a2d4d] hover:bg-gray-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"><CheckCircle2 size={16} /> Finalizar Revisión</button>
               </div>
            </div>
 
