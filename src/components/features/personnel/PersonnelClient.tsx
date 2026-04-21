@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { PersonalRecord } from '@/app/types/database'
 import AddPersonnelModal from './AddPersonnelModal'
+import UploadPersonnelDocumentModal from './UploadPersonnelDocumentModal'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 
@@ -31,6 +32,7 @@ const statusStyles: Record<string, string> = {
 
 export default function PersonnelClient({ records }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [uploadModalDoc, setUploadModalDoc] = useState<{id: string, name: string} | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   
   const supabase = createClient()
@@ -148,7 +150,13 @@ export default function PersonnelClient({ records }: Props) {
                     >
                       {deletingId === p.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                     </button>
-                    <button className="p-1 hover:text-blue-600 transition-colors" title="Agregar Documentación"><Plus size={18} /></button>
+                    <button 
+                      onClick={() => setUploadModalDoc({id: p.id, name: `${p.first_name} ${p.last_name}`})}
+                      className="p-1 hover:text-blue-600 transition-colors" 
+                      title="Agregar Documentación"
+                    >
+                      <Plus size={18} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -178,6 +186,13 @@ export default function PersonnelClient({ records }: Props) {
       <AddPersonnelModal 
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+      />
+
+      <UploadPersonnelDocumentModal 
+        isOpen={!!uploadModalDoc}
+        onClose={() => setUploadModalDoc(null)}
+        personnelId={uploadModalDoc?.id || ''}
+        personnelName={uploadModalDoc?.name || ''}
       />
     </div>
   )
