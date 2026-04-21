@@ -73,9 +73,9 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
         router.refresh()
       }, 2000)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading:', error)
-      alert('Error al subir el documento. Asegúrese de que el bucket "documents" exista en Supabase.')
+      alert(`Error al subir el documento: ${error.message || 'Asegúrese de que el bucket \"documents\" exista en Supabase.'}`)
     } finally {
       setLoading(false)
     }
