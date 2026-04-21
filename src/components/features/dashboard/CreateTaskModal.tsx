@@ -28,8 +28,10 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
 
   if (!isOpen) return null
 
-  // Filtramos los usuarios por el departamento seleccionado
-  const filteredUsers = users.filter(u => u.department_id === deptId)
+  // Si hay departamento seleccionado, filtramos. Si no, mostramos todos los usuarios.
+  const filteredUsers = deptId 
+    ? users.filter(u => u.department_id === deptId)
+    : users
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,9 +59,9 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
         .insert({
           title,
           description: desc,
-          assigned_to_user_id: assignedTo,
+          assigned_to_user_id: assignedTo || null,
           requester_id: user.id,
-          department_id: deptId,
+          department_id: deptId || null,
           due_date: dueDate,
           priority,
           instruction_file_path: filePath,
@@ -131,12 +133,12 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento (Opcional)</label>
                 <select 
-                  required value={deptId} 
+                  value={deptId} 
                   onChange={(e) => {
                     setDeptId(e.target.value)
-                    setAssignedTo('') // Reset responsable when dept changes
+                    setAssignedTo('') 
                   }}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black uppercase text-[#0a2d4d]"
                 >
@@ -148,14 +150,13 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Responsable</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Responsable (Opcional)</label>
                 <select 
-                  required value={assignedTo} 
+                  value={assignedTo} 
                   onChange={(e) => setAssignedTo(e.target.value)}
-                  disabled={!deptId}
-                  className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black uppercase text-[#0a2d4d] ${!deptId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black uppercase text-[#0a2d4d]"
                 >
-                  <option value="">{deptId ? 'Seleccionar...' : 'Elija Depto. primero'}</option>
+                  <option value="">Seleccionar...</option>
                   {filteredUsers.map(u => (
                     <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
                   ))}
@@ -185,7 +186,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Archivo de Instrucción (PDF)</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Archivo de Instrucción (Opcional)</label>
               <div className="relative group">
                 <input 
                   type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)}
