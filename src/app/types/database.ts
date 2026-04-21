@@ -108,6 +108,8 @@ export interface PersonalRecord {
   rut: string;
   first_name: string;
   last_name: string;
+  cargo: string;
+  centro_costos: string;
   entry_date: string;
   status: 'Vinculado' | 'En Suspensión' | 'Desvinculado';
   comments?: string;

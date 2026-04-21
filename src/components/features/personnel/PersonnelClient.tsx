@@ -63,6 +63,17 @@ export default function PersonnelClient({ records }: Props) {
     }
   }
 
+  // Función para formatear RUT en la tabla
+  const formatRut = (value: string) => {
+    if (!value) return ''
+    let clean = value.replace(/[^0-9kK]/g, '').toUpperCase()
+    if (clean.length < 2) return clean
+    let dv = clean.slice(-1)
+    let body = clean.slice(0, -1)
+    let formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+    return `${formattedBody}-${dv}`
+  }
+
   const stats = [
     { label: 'TOTAL ACTIVOS', value: records.filter(r => r.status === 'Vinculado').length },
     { label: 'EN SUSPENSIÓN', value: records.filter(r => r.status === 'En Suspensión').length },
@@ -116,25 +127,24 @@ export default function PersonnelClient({ records }: Props) {
         <table className="w-full text-left border-collapse text-[#0a2d4d]">
           <thead>
             <tr className="bg-gray-50/50 border-b border-gray-100">
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400">Nombre Completo</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400">RUT</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Estado</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400">Fecha Ingreso</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Nombre</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Apellido</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-center">RUT</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Cargo</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Centro de Costos</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-center">Estado</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">Fecha Ingreso</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 font-medium">
             {records.map((p, idx) => (
               <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                <td className="px-8 py-6">
-                   <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0a2d4d] flex items-center justify-center text-[10px] font-black uppercase shadow-sm">
-                         {p.first_name[0]}{p.last_name[0]}
-                      </div>
-                      <span className="text-xs font-bold uppercase">{p.first_name} {p.last_name}</span>
-                   </div>
-                </td>
-                <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums tracking-tighter">{p.rut}</td>
+                <td className="px-8 py-6 text-xs font-black uppercase">{p.first_name}</td>
+                <td className="px-8 py-6 text-xs font-black uppercase">{p.last_name}</td>
+                <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums tracking-tighter text-center">{formatRut(p.rut)}</td>
+                <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{p.cargo}</td>
+                <td className="px-8 py-6 text-[10px] font-black uppercase text-gray-500">{p.centro_costos}</td>
                 <td className="px-8 py-6 text-center">
                   <span className={`px-3 py-1 rounded-full text-[8px] font-black border ${statusStyles[p.status]} uppercase tracking-widest`}>
                     {p.status}
@@ -171,7 +181,7 @@ export default function PersonnelClient({ records }: Props) {
             ))}
             {records.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-8 py-12 text-center text-gray-400 text-sm font-bold uppercase tracking-widest">
+                <td colSpan={8} className="px-8 py-12 text-center text-gray-400 text-sm font-bold uppercase tracking-widest">
                   No hay registros de personal disponibles.
                 </td>
               </tr>

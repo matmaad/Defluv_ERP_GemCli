@@ -120,6 +120,8 @@ CREATE TABLE IF NOT EXISTS personal_records (
     rut TEXT UNIQUE NOT NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
+    cargo TEXT,
+    centro_costos TEXT,
     entry_date DATE NOT NULL,
     status TEXT DEFAULT 'Vinculado' CHECK (status IN ('Vinculado', 'En Suspensión', 'Desvinculado')),
     comments TEXT,
