@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   FileDown,
   Trash2,
-  X
+  X,
+  CheckCircle2
 } from 'lucide-react'
 import { AuditLog } from '@/app/types/database'
 import { analyzeDocument } from '@/app/actions/ai-actions'
