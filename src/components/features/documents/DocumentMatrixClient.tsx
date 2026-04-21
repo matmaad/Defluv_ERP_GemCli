@@ -182,54 +182,54 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
       {/* Table Section */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1200px]">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center w-32">Acciones Rápidas</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Estado</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Fecha Subida</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center text-red-500">Fecha Límite</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400">Subido Por</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Más</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center w-24">Gestión</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Estado</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Fecha Subida</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center text-red-500">Fecha Límite</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400">Subido Por</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 font-medium">
               {filteredDocuments.map((doc) => (
                 <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors group text-[#0a2d4d]">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 justify-center">
+                  <td className="px-4 py-2">
+                    <div className="flex items-center gap-1.5 justify-center">
                       {doc.current_status === 'Pendiente' ? (
                         <>
                           <button 
                             onClick={() => handleApprove(doc.id)}
                             disabled={!!actionLoading}
-                            className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
+                            className="p-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
                             title="Aprobar"
                           >
-                            {actionLoading === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                            {actionLoading === doc.id ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                           </button>
                           <button 
                             onClick={() => setRejectModalDoc({id: doc.id, title: doc.title})}
                             disabled={!!actionLoading}
-                            className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
+                            className="p-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
                             title="Rechazar"
                           >
-                            <X size={16} />
+                            <X size={14} />
                           </button>
                         </>
                       ) : (
                         <button 
                           onClick={() => setReplaceModalDoc({id: doc.id, title: doc.title, path: doc.storage_path})}
-                          className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
+                          className="p-1 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
                           title="Reemplazar / Nueva Versión"
                         >
-                          <RefreshCcw size={16} />
+                          <RefreshCcw size={14} />
                         </button>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2">
                     <div className="max-w-xs">
                       <p className="text-xs font-black uppercase truncate">{doc.title}</p>
                       <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{doc.id.slice(0, 8)} • {doc.department?.name || 'S/D'}</p>
@@ -238,38 +238,38 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`px-3 py-1 rounded-full text-[8px] font-black border ${statusStyles[doc.current_status]} uppercase tracking-widest`}>
+                  <td className="px-4 py-2 text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black border ${statusStyles[doc.current_status]} uppercase tracking-widest`}>
                       ● {doc.current_status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-center text-[10px] font-bold text-gray-400 tabular-nums">
+                  <td className="px-4 py-2 text-center text-[10px] font-bold text-gray-400 tabular-nums">
                     {new Date(doc.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 text-center text-[10px] font-black text-red-500 tabular-nums">
+                  <td className="px-4 py-2 text-center text-[10px] font-black text-red-500 tabular-nums">
                     {doc.due_date ? new Date(doc.due_date).toLocaleDateString() : 'SIN LÍMITE'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2">
                     <span className="text-[10px] font-black uppercase text-gray-500 truncate max-w-[150px] block">
                        {doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-4 py-2 text-right">
+                    <div className="flex justify-end gap-1.5">
                       <button 
                         onClick={() => handlePreview(doc.storage_path)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Ver Online"
                       >
-                        <Eye size={18} />
+                        <Eye size={16} />
                       </button>
                       <button 
                         onClick={() => handleDownload(doc.storage_path, doc.file_name, doc.id)}
                         disabled={downloadLoading === doc.id}
-                        className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                         title="Descargar Archivo"
                       >
-                        {downloadLoading === doc.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                        {downloadLoading === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                       </button>
                     </div>
                   </td>
