@@ -250,14 +250,9 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
                     {doc.due_date ? new Date(doc.due_date).toLocaleDateString() : 'SIN LÍMITE'}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                       <div className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center text-[8px] font-black text-gray-400 border border-gray-200 uppercase">
-                          {doc.uploader ? `${doc.uploader.first_name[0]}${doc.uploader.last_name[0]}` : <User size={12} />}
-                       </div>
-                       <span className="text-[10px] font-black uppercase text-gray-500 truncate max-w-[120px]">
-                          {doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}
-                       </span>
-                    </div>
+                    <span className="text-[10px] font-black uppercase text-gray-500 truncate max-w-[150px] block">
+                       {doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
