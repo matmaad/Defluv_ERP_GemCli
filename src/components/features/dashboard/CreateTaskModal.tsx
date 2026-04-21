@@ -72,9 +72,9 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
         router.refresh()
       }, 2000)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating task:', error)
-      alert('Error al crear la tarea.')
+      alert(`Error al crear la tarea: ${error.message || 'Error desconocido'}`)
     } finally {
       setLoading(false)
     }

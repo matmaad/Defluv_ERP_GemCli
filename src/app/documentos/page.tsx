@@ -42,7 +42,7 @@ export default async function DocumentosPage() {
 
   const stats = [
     { label: 'PENDIENTE (EN REVISIÓN)', count: counts['Pendiente'], status: 'Pendiente' as DocStatus },
-    { label: 'NO CUMPLE', count: counts['No Cumple'], status: 'No Cumple' as DocStatus },
+    { label: 'NO CUMPLE (FUERA DE PLAZO)', count: counts['No Cumple'], status: 'No Cumple' as DocStatus },
     { label: 'VENCIDO', count: counts['Vencido'], status: 'Vencido' as DocStatus },
     { label: 'RECHAZADO', count: counts['Rechazado'], status: 'Rechazado' as DocStatus },
     { label: 'APROBADO', count: counts['Aprobado'], status: 'Aprobado' as DocStatus },

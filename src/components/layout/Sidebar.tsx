@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 
 const menuItems = [
-  { name: 'PANEL CONTROL', icon: LayoutDashboard, href: '/dashboard' },
+  { name: 'Panel de Control', icon: LayoutDashboard, href: '/dashboard' },
   { name: 'MATRIZ DE DOCUMENTOS', icon: FileText, href: '/documentos' },
   { name: 'REGISTRO PERSONAL', icon: Users, href: '/personal' },
   { name: 'CONTROL ACCESO', icon: ShieldCheck, href: '/acceso' },
