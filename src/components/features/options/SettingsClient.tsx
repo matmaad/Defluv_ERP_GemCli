@@ -66,7 +66,7 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
       <div className="max-w-4xl mx-auto space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-[#0a2d4d]">
           {/* Email Form */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 space-y-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-50 rounded-xl">
                 <Mail size={20} />
@@ -81,7 +81,7 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                 />
               </div>
               
@@ -103,7 +103,7 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
           </div>
 
           {/* Password Form */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 space-y-6">
             <div className="flex items-center gap-3 text-[#0a2d4d]">
               <div className="p-2 bg-blue-50 rounded-xl">
                 <Lock size={20} />
@@ -120,7 +120,7 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
                   minLength={6}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                 />
               </div>
               <div className="space-y-1.5">
@@ -131,7 +131,7 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
                   minLength={6}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
                 />
               </div>
               
@@ -148,16 +148,16 @@ export default function SettingsClient({ currentEmail, userName }: Props) {
         </div>
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold uppercase tracking-widest">
+          <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-xs font-bold uppercase tracking-widest">
             <AlertCircle size={18} />
             {error}
           </div>
         )}
 
         {/* Profile Info Summary */}
-        <div className="p-8 bg-blue-50 rounded-3xl border border-blue-100 flex items-center justify-between shadow-inner">
+        <div className="p-8 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between shadow-inner">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-[#0a2d4d] flex items-center justify-center overflow-hidden shadow-xl border-4 border-white">
+            <div className="w-16 h-16 rounded-xl bg-[#0a2d4d] flex items-center justify-center overflow-hidden shadow-xl border-4 border-white">
               <img 
                 src={`https://ui-avatars.com/api/?name=${userName}&background=0a2d4d&color=fff`} 
                 alt="Avatar" 

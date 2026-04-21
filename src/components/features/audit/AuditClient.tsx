@@ -77,7 +77,7 @@ export default function AuditClient({ initialLogs }: Props) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 h-screen overflow-hidden font-sans">
+    <div className="flex-1 flex flex-col bg-gray-50 h-screen overflow-hidden font-sans text-[#0a2d4d]">
       {/* Internal Navigation (Back Button) */}
       {selectedDoc && (
         <div className="px-8 pt-4">
@@ -94,7 +94,7 @@ export default function AuditClient({ initialLogs }: Props) {
       {!selectedDoc ? (
         <div className="flex-1 p-8 space-y-6 overflow-y-auto">
            {/* Table */}
-           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <table className="w-full text-left border-collapse text-[#0a2d4d]">
                  <thead>
                     <tr className="bg-gray-50/50 border-b border-gray-100">
@@ -107,7 +107,7 @@ export default function AuditClient({ initialLogs }: Props) {
                     {initialLogs.map((log) => (
                       <tr 
                         key={log.id} 
-                        className="hover:bg-gray-50/50 transition-colors cursor-pointer group"
+                        className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
                         onClick={() => setSelectedDoc(log.resource_id || 'Documento')}
                       >
                          <td className="px-8 py-5 text-[11px] font-bold text-gray-400 tabular-nums">
@@ -162,7 +162,7 @@ export default function AuditClient({ initialLogs }: Props) {
            {/* SGC-Bot Sidebar */}
            <div className="w-[450px] bg-white border-l border-gray-100 flex flex-col shadow-2xl relative z-10">
               <div className="p-8 border-b border-gray-50 flex items-center gap-4 bg-gray-50/50">
-                 <div className="w-12 h-12 rounded-2xl bg-[#0a2d4d] flex items-center justify-center shadow-lg shadow-blue-900/20">
+                 <div className="w-12 h-12 rounded-xl bg-[#0a2d4d] flex items-center justify-center shadow-lg shadow-blue-900/20">
                     <Bot className="text-white" size={28} />
                  </div>
                  <div>

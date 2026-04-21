@@ -99,7 +99,7 @@ export default function PersonnelClient({ records, userRole }: Props) {
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans text-[#0a2d4d]">
       {/* Summary Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 relative h-32 rounded-3xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white shadow-lg">
+        <div className="lg:col-span-2 relative h-32 rounded-xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white shadow-lg">
            <div className="absolute inset-0 opacity-10 pointer-events-none">
               <UserCircle className="absolute -right-8 -bottom-8 w-48 h-48 text-white" />
            </div>
@@ -117,7 +117,7 @@ export default function PersonnelClient({ records, userRole }: Props) {
 
         <div 
           onClick={() => setIsAddModalOpen(true)}
-          className="bg-white rounded-3xl border border-gray-100 shadow-sm h-32 flex flex-col items-center justify-center text-center space-y-2 hover:shadow-md transition-all cursor-pointer group border-b-4 border-b-[#0a2d4d]"
+          className="bg-white rounded-xl border border-gray-100 shadow-sm h-32 flex flex-col items-center justify-center text-center space-y-2 hover:shadow-md transition-all cursor-pointer group border-b-4 border-b-[#0a2d4d]"
         >
            <div className="p-2 bg-gray-50 rounded-xl group-hover:bg-[#0a2d4d] group-hover:text-white transition-all shadow-inner">
               <UserPlus size={24} />
@@ -130,7 +130,7 @@ export default function PersonnelClient({ records, userRole }: Props) {
       </div>
 
       {/* Personnel Table */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Listado de Colaboradores</h3>
            <div className="flex gap-2">
@@ -219,7 +219,7 @@ export default function PersonnelClient({ records, userRole }: Props) {
       </div>
 
       {/* Info Card */}
-      <div className="p-8 bg-blue-50 rounded-3xl border border-blue-100 flex gap-6 items-start shadow-inner">
+      <div className="p-8 bg-blue-50 rounded-xl border border-blue-100 flex gap-6 items-start shadow-inner">
          <ShieldAlert className="text-blue-600 mt-1" size={24} />
          <div className="space-y-1">
             <h4 className="text-xs font-black text-[#0a2d4d] uppercase tracking-widest">Protocolo de Seguridad de Información</h4>
