@@ -1,17 +1,18 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { 
   ShieldCheck, 
   FileCheck, 
   AlertTriangle, 
-  Plus
+  Plus,
+  Filter
 } from 'lucide-react'
 import { Task, KPI, Deadline } from '@/app/types/database'
 import CreateTaskModal from './CreateTaskModal'
 
 interface Props {
-  kpis: KPI[]
+  allDocs: { current_status: string; department_id: string }[]
   tasks: Task[]
   deadlines: Deadline[]
   userName: string
@@ -22,7 +23,6 @@ interface Props {
 
 const metricConfig: Record<string, any> = {
   'Cumplimiento Protocolos': { icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
-  'Auditorías Internas': { icon: FileCheck, color: 'text-[#0a2d4d]', bg: 'bg-gray-50' },
   'Alertas de Calidad': { icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
   'Documentos Totales': { icon: FileCheck, color: 'text-green-600', bg: 'bg-green-50' },
 }
@@ -37,20 +37,39 @@ const formatDateChile = (dateString: string | null | undefined) => {
   return `${day}/${month}/${year}`
 }
 
-export default function DashboardClient({ kpis, tasks, deadlines, userName, userRole, departments, users }: Props) {
+export default function DashboardClient({ allDocs, tasks, deadlines, userName, userRole, departments, users }: Props) {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
+  const [selectedDept, setSelectedDept] = useState('')
+
+  // Calculate KPIs dynamically based on filter
+  const kpis = useMemo(() => {
+    const filteredDocs = selectedDept 
+      ? allDocs.filter(d => d.department_id === selectedDept)
+      : allDocs
+
+    const totalDocs = filteredDocs.length
+    const approvedDocs = filteredDocs.filter(d => d.current_status === 'Aprobado').length
+    const complianceRate = totalDocs > 0 ? (approvedDocs / totalDocs) * 100 : 0
+    const alertCount = filteredDocs.filter(d => d.current_status === 'Rechazado' || d.current_status === 'No Cumple').length
+
+    return [
+      { id: '1', kpi_name: 'Cumplimiento Protocolos', value: parseFloat(complianceRate.toFixed(1)), unit: '%' },
+      { id: '2', kpi_name: 'Alertas de Calidad', value: alertCount, unit: '' },
+      { id: '3', kpi_name: 'Documentos Totales', value: totalDocs, unit: '' },
+    ]
+  }, [allDocs, selectedDept])
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto text-[#0a2d4d]">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
           {/* Banner */}
-          <div className="relative h-64 rounded-xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white shadow-xl">
+          <div className="relative h-64 rounded-xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white shadow-xl border-b-4 border-blue-600">
              <div className="relative z-10 space-y-4 max-w-md">
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-60">Operaciones DEFLUV SA</p>
                 <h2 className="text-4xl font-black leading-tight tracking-tighter">OPTIMIZACIÓN DE PROCESOS</h2>
                 <div className="flex gap-4 pt-2">
-                   <button className="px-6 py-2.5 bg-white text-[#0a2d4d] rounded-lg text-[10px] font-bold hover:bg-gray-100 transition-colors uppercase tracking-widest">
+                   <button className="px-6 py-2.5 bg-white text-[#0a2d4d] rounded-lg text-[10px] font-bold hover:bg-gray-100 transition-colors uppercase tracking-widest shadow-lg">
                      Revisar Protocolos
                    </button>
                 </div>
@@ -59,7 +78,21 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
 
           {/* Metrics Section */}
           <div className="space-y-4">
-             <h3 className="text-sm font-black uppercase tracking-widest">Métricas de Rendimiento</h3>
+             <div className="flex justify-between items-center px-1">
+                <h3 className="text-sm font-black uppercase tracking-widest">Métricas de Rendimiento</h3>
+                <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
+                   <Filter size={14} className="text-gray-400" />
+                   <select 
+                    value={selectedDept}
+                    onChange={(e) => setSelectedDept(e.target.value)}
+                    className="text-[10px] font-black uppercase tracking-widest outline-none bg-transparent cursor-pointer"
+                   >
+                     <option value="">TODOS LOS DEPARTAMENTOS</option>
+                     {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                   </select>
+                </div>
+             </div>
+             
              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {kpis.map((kpi, idx) => {
                   const config = metricConfig[kpi.kpi_name] || { icon: FileCheck, color: 'text-gray-600', bg: 'bg-gray-50' }
@@ -70,7 +103,7 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
                              <config.icon className={config.iconColor || config.color} size={24} />
                           </div>
                        </div>
-                       <p className="text-4xl font-black mb-1">{kpi.value}{kpi.unit}</p>
+                       <p className="text-4xl font-black mb-1 tabular-nums">{kpi.value}{kpi.unit}</p>
                        <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">{kpi.kpi_name}</p>
                     </div>
                   )
@@ -134,7 +167,7 @@ export default function DashboardClient({ kpis, tasks, deadlines, userName, user
                </thead>
                <tbody className="divide-y divide-gray-50">
                   {tasks.map((t, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors group">
+                    <tr key={idx} className="hover:bg-gray-50 transition-colors group text-[#0a2d4d]">
                        <td className="px-8 py-6">
                           <p className="text-xs font-bold uppercase">{t.title}</p>
                           <p className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">{t.description || 'Sin descripción'}</p>

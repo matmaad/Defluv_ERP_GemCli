@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import DashboardClient from '@/components/features/dashboard/DashboardClient'
-import { KPI } from '@/app/types/database'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -17,43 +16,28 @@ export default async function DashboardPage() {
     profile = data
   }
 
-  // 1. Fetch real documents for KPI calculation
+  // 1. Fetch raw documents for dynamic KPI calculation on client
   const { data: allDocs } = await supabase
     .from('documents')
-    .select('current_status')
+    .select('current_status, department_id')
 
-  const totalDocs = allDocs?.length || 0
-  const approvedDocs = allDocs?.filter(d => d.current_status === 'Aprobado').length || 0
-  const complianceRate = totalDocs > 0 ? (approvedDocs / totalDocs) * 100 : 0
-
-  // 2. Fetch Alerts (Rechazados + No Cumple)
-  const alertCount = allDocs?.filter(d => d.current_status === 'Rechazado' || d.current_status === 'No Cumple').length || 0
-
-  // 3. Fetch real Tasks
+  // 2. Fetch real Tasks
   const { data: tasks } = await supabase
     .from('tasks')
     .select('*')
     .order('due_date', { ascending: true })
     .limit(5)
 
-  // 4. Fetch real Deadlines
+  // 3. Fetch real Deadlines
   const { data: deadlines } = await supabase
     .from('deadlines')
     .select('*')
     .order('due_date', { ascending: true })
     .limit(5)
 
-  // 5. Fetch Departments and Users for Task Modal
-  const { data: departments } = await supabase.from('departments').select('id, name')
+  // 4. Fetch Departments and Users for Task Modal and Filtering
+  const { data: departments } = await supabase.from('departments').select('id, name').order('name', { ascending: true })
   const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name, department_id')
-
-  // Format real KPIs for the client
-  const now = new Date().toISOString()
-  const kpis: KPI[] = [
-    { id: '1', kpi_name: 'Cumplimiento Protocolos', value: parseFloat(complianceRate.toFixed(1)), unit: '%', date_recorded: now, created_at: now, updated_at: now },
-    { id: '2', kpi_name: 'Alertas de Calidad', value: alertCount, unit: '', date_recorded: now, created_at: now, updated_at: now },
-    { id: '3', kpi_name: 'Documentos Totales', value: totalDocs, unit: '', date_recorded: now, created_at: now, updated_at: now },
-  ]
 
   // Type-safe map for profiles to match DashboardClient expected props
   const formattedProfiles = profiles?.map(p => ({
@@ -65,7 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardClient 
-      kpis={kpis} 
+      allDocs={allDocs || []}
       tasks={tasks || []} 
       deadlines={deadlines || []}
       userName={profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario'}
