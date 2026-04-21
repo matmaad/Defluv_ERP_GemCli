@@ -316,7 +316,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                  {messages.map((msg, idx) => (
                    <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
                       <div className="flex items-center gap-2 text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                         {msg.role === 'bot' ? <><Bot size={12} className="text-[#0a2d4d]" /> SGC-BOT</> : <>OPERADOR <User size={12} /></>}
+                         {msg.role === 'bot' ? <><Bot size={12} className="text-[#0a2d4d]" /> DEFLUVOT</> : <>OPERADOR <User size={12} /></>}
                       </div>
                       <div className={`max-w-[90%] p-5 rounded-3xl text-xs font-medium leading-relaxed shadow-sm border ${msg.role === 'user' ? 'bg-[#0a2d4d] text-white rounded-tr-none border-blue-900' : 'bg-gray-50 text-[#0a2d4d] rounded-tl-none border-gray-100'}`}>
                          {msg.text}
