@@ -12,17 +12,20 @@ import {
   UserCircle,
   Plus,
   Trash2,
-  Loader2
+  Loader2,
+  Edit3
 } from 'lucide-react'
 import { PersonalRecord } from '@/app/types/database'
 import AddPersonnelModal from './AddPersonnelModal'
 import UploadPersonnelDocumentModal from './UploadPersonnelDocumentModal'
 import ViewPersonnelDocumentsModal from './ViewPersonnelDocumentsModal'
+import EditPersonnelModal from './EditPersonnelModal'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 
 interface Props {
   records: PersonalRecord[]
+  userRole: string
 }
 
 const statusStyles: Record<string, string> = {
@@ -42,10 +45,11 @@ const formatDateChile = (dateString: string | null | undefined) => {
   return `${day}/${month}/${year}`
 }
 
-export default function PersonnelClient({ records }: Props) {
+export default function PersonnelClient({ records, userRole }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [uploadModalDoc, setUploadModalDoc] = useState<{id: string, name: string} | null>(null)
   const [viewDocsModal, setViewDocsModal] = useState<PersonalRecord | null>(null)
+  const [editModalRecord, setEditModalRecord] = useState<PersonalRecord | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   
   const supabase = createClient()
@@ -170,14 +174,27 @@ export default function PersonnelClient({ records }: Props) {
                       >
                         <FileText size={18} />
                       </button>
-                      <button 
-                        onClick={() => handleDelete(p.id, `${p.first_name} ${p.last_name}`)}
-                        disabled={deletingId === p.id}
-                        className="p-1 hover:text-red-600 transition-colors disabled:opacity-50"
-                        title="Eliminar Registro"
-                      >
-                        {deletingId === p.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
-                      </button>
+                      
+                      {userRole === 'admin' && (
+                        <>
+                          <button 
+                            onClick={() => setEditModalRecord(p)}
+                            className="p-1 hover:text-blue-600 transition-colors" 
+                            title="Editar Información"
+                          >
+                            <Edit3 size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(p.id, `${p.first_name} ${p.last_name}`)}
+                            disabled={deletingId === p.id}
+                            className="p-1 hover:text-red-600 transition-colors disabled:opacity-50"
+                            title="Eliminar Registro"
+                          >
+                            {deletingId === p.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                          </button>
+                        </>
+                      )}
+
                       <button 
                         onClick={() => setUploadModalDoc({id: p.id, name: `${p.first_name} ${p.last_name}`})}
                         className="p-1 hover:text-blue-600 transition-colors" 
@@ -230,6 +247,12 @@ export default function PersonnelClient({ records }: Props) {
         personnelName={`${viewDocsModal?.first_name} ${viewDocsModal?.last_name}`}
         cvPath={viewDocsModal?.cv_storage_path}
         certPath={viewDocsModal?.certificates_storage_path}
+      />
+
+      <EditPersonnelModal 
+        isOpen={!!editModalRecord}
+        onClose={() => setEditModalRecord(null)}
+        record={editModalRecord}
       />
     </div>
   )

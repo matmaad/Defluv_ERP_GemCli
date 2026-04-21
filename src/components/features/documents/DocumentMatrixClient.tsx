@@ -166,7 +166,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
               className={`p-4 rounded-xl border-2 bg-white ${selectedStatus === stat.status ? 'border-[#0a2d4d] ring-2 ring-[#0a2d4d]/10' : 'border-gray-100'} flex flex-col justify-between h-32 transition-all hover:scale-105 cursor-pointer shadow-sm`}
             >
               <div className="flex justify-between items-start">
-                <span className={`text-[10px] font-bold uppercase tracking-wider text-gray-400`}>{stat.label}</span>
+                <span className={`text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-pre-line`}>{stat.label}</span>
                 <Icon className={textColor} size={18} />
               </div>
               <span className={`text-4xl font-bold ${textColor}`}>{stat.count}</span>
