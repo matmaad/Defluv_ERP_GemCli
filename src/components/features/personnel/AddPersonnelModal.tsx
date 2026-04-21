@@ -77,9 +77,9 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
         onClose()
         router.refresh()
       }, 2000)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding personnel:', error)
-      alert('Error al registrar personal. Verifique si el RUT ya existe.')
+      alert(`Error al registrar personal: ${error.message || 'Error desconocido'}`)
     } finally {
       setLoading(false)
     }
