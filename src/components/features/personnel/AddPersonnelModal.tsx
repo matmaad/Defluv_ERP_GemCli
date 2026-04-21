@@ -27,6 +27,36 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
 
   if (!isOpen) return null
 
+  // Función para formatear RUT mientras se escribe
+  const formatRut = (value: string) => {
+    // Eliminar todo lo que no sea número o la letra K
+    let clean = value.replace(/[^0-9kK]/g, '').toUpperCase()
+    
+    if (clean.length === 0) return ''
+
+    // Separar dígito verificador
+    let dv = clean.slice(-1)
+    let body = clean.slice(0, -1)
+
+    // Formatear cuerpo con puntos
+    let formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+
+    if (clean.length > 1) {
+      return `${formattedBody}-${dv}`
+    } else {
+      return dv
+    }
+  }
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value
+    // Solo permitir números y la letra K al final
+    const rawValue = input.replace(/[^0-9kK]/g, '')
+    if (rawValue.length <= 9) { // Máximo 9 caracteres (ej: 123456789 -> 12.345.678-9)
+      setRut(formatRut(rawValue))
+    }
+  }
+
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -102,11 +132,14 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
           <form onSubmit={handleSingleSubmit} className="p-8 space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">RUT (Sin puntos, con guion)</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">RUT (Formato automático)</label>
                 <input 
-                  type="text" required value={rut} onChange={(e) => setRut(e.target.value)}
+                  type="text" 
+                  required 
+                  value={rut} 
+                  onChange={handleRutChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
-                  placeholder="12345678-9"
+                  placeholder="12.345.678-9"
                 />
               </div>
 
@@ -149,7 +182,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
 
             <button 
               type="submit" disabled={loading}
-              className="w-full py-4 bg-[#0a2d4d] text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/30 hover:bg-blue-900 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-[#0a2d4d] text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/30 hover:bg-blue-900 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : 'Registrar Colaborador'}
             </button>
@@ -164,7 +197,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
                 <p className="text-xs text-gray-500 mt-2 px-8">Descargue la plantilla, complete los datos y suba el archivo para procesar múltiples registros a la vez.</p>
              </div>
              <div className="flex gap-4 w-full px-8">
-                <button className="flex-1 py-3 border border-gray-200 rounded-xl text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:bg-gray-50">Descargar Plantilla</button>
+                <button className="flex-1 py-3 border border-gray-200 rounded-xl text-[10px] font-bold text-gray-600 uppercase tracking-widest hover:bg-gray-50">Descargar Plantilla</button>
                 <button className="flex-[2] py-3 bg-[#0a2d4d] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-blue-900/20 hover:bg-blue-900">Seleccionar CSV</button>
              </div>
              <p className="text-[9px] text-orange-600 font-bold uppercase tracking-tighter">Nota: El sistema validará RUTs duplicados automáticamente.</p>
