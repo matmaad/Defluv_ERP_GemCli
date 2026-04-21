@@ -17,9 +17,10 @@ import {
   Check,
   X,
   Loader2,
-  RefreshCcw
+  RefreshCcw,
+  User
 } from 'lucide-react'
-import { Document, DocStatus } from '@/app/types/database'
+import { DocumentWithDetails, DocStatus } from '@/app/types/database'
 import UploadDocumentModal from './UploadDocumentModal'
 import RejectDocumentModal from './RejectDocumentModal'
 import ReplaceDocumentModal from './ReplaceDocumentModal'
@@ -27,7 +28,7 @@ import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 
 interface Props {
-  initialDocuments: Document[]
+  initialDocuments: DocumentWithDetails[]
   stats: {
     label: string
     count: number
@@ -58,6 +59,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
   const [rejectModalDoc, setRejectModalDoc] = useState<{id: string, title: string} | null>(null)
   const [replaceModalDoc, setReplaceModalDoc] = useState<{id: string, title: string, path: string} | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [downloadLoading, setDownloadLoading] = useState<string | null>(null)
   
   const supabase = createClient()
   const router = useRouter()
@@ -68,7 +70,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
       const { error } = await supabase
         .from('documents')
         .update({ current_status: 'Aprobado' })
-        .eq('id', docId) // Using 'id' instead of 'document_id'
+        .eq('id', docId)
       
       if (error) throw error
       router.refresh()
@@ -77,6 +79,44 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
       alert('Error al aprobar el documento.')
     } finally {
       setActionLoading(null)
+    }
+  }
+
+  const handleDownload = async (path: string, fileName: string, docId: string) => {
+    setDownloadLoading(docId)
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(path)
+
+      if (error) throw error
+
+      const url = window.URL.createObjectURL(data)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+    } catch (error) {
+      console.error('Download error:', error)
+      alert('Error al descargar el archivo.')
+    } finally {
+      setDownloadLoading(null)
+    }
+  }
+
+  const handlePreview = async (path: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(path, 60)
+
+      if (error) throw error
+      window.open(data.signedUrl, '_blank')
+    } catch (error) {
+      console.error('Preview error:', error)
+      alert('Error al abrir la vista previa.')
     }
   }
 
@@ -112,13 +152,13 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
           <input 
             type="text" 
             placeholder="Buscar por ID o título..." 
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-zinc-900"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-zinc-900 placeholder:text-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none">
+        <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none uppercase">
           <option>DEPARTAMENTO</option>
           {departments.map(d => (
             <option key={d.id} value={d.id}>{d.name}</option>
@@ -140,85 +180,116 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center w-32">Acciones Rápidas</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">TÍTULO</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">ESTADO</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filteredDocuments.map((doc) => (
-              <tr key={doc.id} className="hover:bg-gray-50 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 justify-center">
-                    {doc.current_status === 'Pendiente' ? (
-                      <>
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[1200px]">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center w-32">Acciones Rápidas</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Estado</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Fecha Subida</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center text-red-500">Fecha Límite</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400">Subido Por</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Más</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 font-medium">
+              {filteredDocuments.map((doc) => (
+                <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors group text-[#0a2d4d]">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-center">
+                      {doc.current_status === 'Pendiente' ? (
+                        <>
+                          <button 
+                            onClick={() => handleApprove(doc.id)}
+                            disabled={!!actionLoading}
+                            className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
+                            title="Aprobar"
+                          >
+                            {actionLoading === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                          </button>
+                          <button 
+                            onClick={() => setRejectModalDoc({id: doc.id, title: doc.title})}
+                            disabled={!!actionLoading}
+                            className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
+                            title="Rechazar"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      ) : (
                         <button 
-                          onClick={() => handleApprove(doc.id)}
-                          disabled={!!actionLoading}
-                          className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
-                          title="Aprobar"
+                          onClick={() => setReplaceModalDoc({id: doc.id, title: doc.title, path: doc.storage_path})}
+                          className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
+                          title="Reemplazar / Nueva Versión"
                         >
-                          {actionLoading === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                          <RefreshCcw size={16} />
                         </button>
-                        <button 
-                          onClick={() => setRejectModalDoc({id: doc.id, title: doc.title})}
-                          disabled={!!actionLoading}
-                          className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
-                          title="Rechazar"
-                        >
-                          <X size={16} />
-                        </button>
-                      </>
-                    ) : (
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="max-w-xs">
+                      <p className="text-xs font-black uppercase truncate">{doc.title}</p>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{doc.id.slice(0, 8)} • {doc.department?.name || 'S/D'}</p>
+                      {doc.rejection_comment && doc.current_status === 'Rechazado' && (
+                        <p className="text-[9px] text-red-500 font-black mt-1 uppercase italic border-l-2 border-red-500 pl-2">Motivo: {doc.rejection_comment}</p>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-full text-[8px] font-black border ${statusStyles[doc.current_status]} uppercase tracking-widest`}>
+                      ● {doc.current_status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center text-[10px] font-bold text-gray-400 tabular-nums">
+                    {new Date(doc.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-center text-[10px] font-black text-red-500 tabular-nums">
+                    {doc.due_date ? new Date(doc.due_date).toLocaleDateString() : 'SIN LÍMITE'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                       <div className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center text-[8px] font-black text-gray-400 border border-gray-200 uppercase">
+                          {doc.uploader ? `${doc.uploader.first_name[0]}${doc.uploader.last_name[0]}` : <User size={12} />}
+                       </div>
+                       <span className="text-[10px] font-black uppercase text-gray-500 truncate max-w-[120px]">
+                          {doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}
+                       </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
                       <button 
-                        onClick={() => setReplaceModalDoc({id: doc.id, title: doc.title, path: doc.storage_path})}
-                        className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
-                        title="Reemplazar / Nueva Versión"
+                        onClick={() => handlePreview(doc.storage_path)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Ver Online"
                       >
-                        <RefreshCcw size={16} />
+                        <Eye size={18} />
                       </button>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-xs font-bold text-[#0a2d4d]">{doc.id.slice(0, 8)}</td>
-                <td className="px-6 py-4">
-                  <span className="text-xs font-semibold text-gray-700 block max-w-xs truncate">{doc.title}</span>
-                  {doc.rejection_comment && doc.current_status === 'Rechazado' && (
-                    <p className="text-[9px] text-red-500 font-bold mt-1 uppercase italic">Motivo: {doc.rejection_comment}</p>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-[9px] font-bold border ${statusStyles[doc.current_status]}`}>
-                    ● {doc.current_status.toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-                      <Eye size={16} />
-                    </button>
-                    <button className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg">
-                      <Download size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {filteredDocuments.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm font-medium">
-                  No se encontraron documentos.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                      <button 
+                        onClick={() => handleDownload(doc.storage_path, doc.file_name, doc.id)}
+                        disabled={downloadLoading === doc.id}
+                        className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Descargar Archivo"
+                      >
+                        {downloadLoading === doc.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredDocuments.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400 text-sm font-black uppercase tracking-widest">
+                    No se encontraron documentos.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* FAB Button */}

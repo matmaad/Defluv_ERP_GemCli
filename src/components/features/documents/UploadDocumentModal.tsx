@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { X, FileUp, Loader2, CheckCircle2 } from 'lucide-react'
+import { X, FileUp, Loader2, CheckCircle2, Calendar } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 
@@ -19,6 +19,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
   const [docType, setDocType] = useState('Protocolo')
   const [articulo, setArticulo] = useState('')
   const [deptId, setDeptId] = useState('')
+  const [dueDate, setDueDate] = useState('')
   
   const supabase = createClient()
   const router = useRouter()
@@ -32,11 +33,9 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
     setLoading(true)
     
     try {
-      // 1. Get current user
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No user logged in')
 
-      // 2. Upload to Storage
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}-${title.replace(/\s+/g, '_')}.${fileExt}`
       const filePath = `${deptId}/${fileName}`
@@ -47,7 +46,6 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
 
       if (uploadError) throw uploadError
 
-      // 3. Insert metadata into DB
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
@@ -61,7 +59,8 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
           file_name: file.name,
           file_size: file.size,
           mime_type: file.type,
-          current_status: 'Pendiente'
+          current_status: 'Pendiente',
+          due_date: dueDate || null
         })
 
       if (dbError) throw dbError
@@ -75,7 +74,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
 
     } catch (error: any) {
       console.error('Error uploading:', error)
-      alert(`Error al subir el documento: ${error.message || 'Asegúrese de que el bucket \"documents\" exista en Supabase.'}`)
+      alert(`Error al subir el documento: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -84,14 +83,13 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm">
       <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        {/* Header */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 text-[#0a2d4d]">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-[#0a2d4d] text-white flex items-center justify-center shadow-lg shadow-blue-900/20">
                 <FileUp size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-[#0a2d4d]">Subir Nuevo Documento</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest">Subir Nuevo Documento</h3>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">SGC - Repositorio Central</p>
              </div>
           </div>
@@ -109,8 +107,8 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
              <p className="text-sm text-gray-500">El archivo se ha registrado correctamente en la matriz.</p>
           </div>
         ) : (
-          <form onSubmit={handleUpload} className="p-8 space-y-6 text-[#0a2d4d]">
-            <div className="grid grid-cols-2 gap-6">
+          <form onSubmit={handleUpload} className="p-8 space-y-5 text-[#0a2d4d]">
+            <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Título del Documento</label>
                 <input 
@@ -142,17 +140,25 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
                 />
               </div>
 
-              <div className="col-span-2 space-y-1.5">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento Responsable</label>
                 <select 
                   required value={deptId} onChange={(e) => setDeptId(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black text-[#0a2d4d]"
                 >
-                  <option value="">Seleccionar Departamento</option>
+                  <option value="">Seleccionar...</option>
                   {departments.map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Límite (Opcional)</label>
+                <input 
+                  type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                />
               </div>
 
               <div className="col-span-2 space-y-1.5">
@@ -164,10 +170,10 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
                   />
                   <label 
                     htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-[#0a2d4d] group-hover:bg-blue-50 transition-all"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-[#0a2d4d] group-hover:bg-blue-50 transition-all px-6"
                   >
                     <FileUp size={24} className="text-gray-400 group-hover:text-[#0a2d4d] mb-2" />
-                    <span className="text-[10px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest text-center px-6 break-all">
+                    <span className="text-[10px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest text-center break-all">
                       {file ? file.name : 'Haz clic para seleccionar PDF'}
                     </span>
                     <span className="text-[8px] text-gray-400 mt-1 uppercase tracking-tighter">Máximo 25MB • Formato PDF</span>
@@ -179,13 +185,13 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
             <div className="flex gap-4 pt-4 border-t border-gray-100">
                <button 
                 type="button" onClick={onClose}
-                className="flex-1 py-3.5 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 hover:bg-gray-50 transition-all uppercase tracking-widest"
+                className="flex-1 py-3.5 border border-gray-200 rounded-xl text-[10px] font-bold text-gray-400 hover:bg-gray-50 transition-all uppercase tracking-widest"
                >
                  Cancelar
                </button>
                <button 
                 type="submit" disabled={loading || !file}
-                className="flex-[2] py-3.5 bg-[#0a2d4d] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-900/30 hover:bg-blue-900 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-[2] py-3.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/30 hover:bg-blue-900 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                >
                  {loading ? (
                    <>

@@ -41,7 +41,18 @@ export interface Document {
   file_size?: number;
   mime_type?: string;
   rejection_comment?: string; // For 'Rechazado' state
+  due_date?: string; // Deadline for upload
   created_at: string;
+}
+
+export interface DocumentWithDetails extends Document {
+  uploader?: {
+    first_name: string;
+    last_name: string;
+  };
+  department?: {
+    name: string;
+  };
 }
 
 export interface DocumentVersion {

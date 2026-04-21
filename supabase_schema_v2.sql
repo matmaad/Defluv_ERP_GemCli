@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS documents (
     file_size BIGINT,
     mime_type TEXT,
     rejection_comment TEXT,
+    due_date TIMESTAMPTZ, -- Deadline for upload
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

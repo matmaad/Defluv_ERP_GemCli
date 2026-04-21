@@ -1,14 +1,18 @@
 import { createClient } from '@/utils/supabase/server'
 import DocumentMatrixClient from '@/components/features/documents/DocumentMatrixClient'
-import { DocStatus } from '@/app/types/database'
+import { DocStatus, DocumentWithDetails } from '@/app/types/database'
 
 export default async function DocumentosPage() {
   const supabase = await createClient()
 
-  // 1. Fetch real documents
+  // 1. Fetch real documents with uploader details
   const { data: documents } = await supabase
     .from('documents')
-    .select('*')
+    .select(`
+      *,
+      uploader:profiles!uploaded_by_user_id (first_name, last_name),
+      department:departments (name)
+    `)
     .order('created_at', { ascending: false })
 
   // 2. Fetch departments for the upload modal
@@ -18,7 +22,7 @@ export default async function DocumentosPage() {
     .order('name', { ascending: true })
 
   // 3. Calculate real stats
-  const { data: statusCounts } = await supabase
+  const { data: allDocs } = await supabase
     .from('documents')
     .select('current_status')
 
@@ -30,7 +34,7 @@ export default async function DocumentosPage() {
     'No Cumple': 0,
   }
 
-  statusCounts?.forEach(doc => {
+  allDocs?.forEach(doc => {
     if (doc.current_status in counts) {
       counts[doc.current_status as DocStatus]++
     }
@@ -46,7 +50,7 @@ export default async function DocumentosPage() {
 
   return (
     <DocumentMatrixClient 
-      initialDocuments={documents || []} 
+      initialDocuments={(documents as any) || []} 
       stats={stats}
       departments={departments || []}
     />
