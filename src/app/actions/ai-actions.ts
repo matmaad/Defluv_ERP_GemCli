@@ -3,72 +3,76 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/utils/supabase/server'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
+// Inicialización fuera de la función para mayor rendimiento
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || '')
 
 export async function analyzeDocument(storagePath: string | null, documentTitle: string, userQuestion: string) {
-  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    console.error('AI Error: GOOGLE_GENERATIVE_AI_API_KEY is not defined in environment variables.')
-    return { error: 'Error de configuración: Clave de API no encontrada.' }
-  }
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
   
+  if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+    return { error: 'Error: La API Key de Gemini no está configurada en el servidor (Vercel).' }
+  }
+
   try {
-    // Usamos el modelo gemini-1.5-flash explícitamente en la versión estable v1 para evitar el error 404 de v1beta
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }, { apiVersion: 'v1' })
+    // Usamos gemini-1.5-flash-latest que es la versión más compatible actualmente
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
     const supabase = await createClient()
 
     let filePart = null
 
-    // Intentamos obtener el archivo para dar contexto si existe el path
     if (storagePath) {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .download(storagePath)
+      try {
+        const { data, error } = await supabase.storage
+          .from('documents')
+          .download(storagePath)
 
-      if (data && !error) {
-        const buffer = await data.arrayBuffer()
-        filePart = {
-          inlineData: {
-            data: Buffer.from(buffer).toString('base64'),
-            mimeType: 'application/pdf'
+        if (data && !error) {
+          const buffer = await data.arrayBuffer()
+          filePart = {
+            inlineData: {
+              data: Buffer.from(buffer).toString('base64'),
+              mimeType: 'application/pdf'
+            }
           }
         }
+      } catch (storageErr) {
+        console.error('Storage Error:', storageErr)
       }
     }
 
     const prompt = `
-      Eres DEFLUVOT, el asistente inteligente oficial de la constructora DEFLUV SA en Talca, Chile.
-      Eres un experto Senior en Sistemas de Gestión de Calidad (SGC) y normas ISO-9001:2015.
+      Eres DEFLUVOT, el asistente inteligente de Constructora DEFLUV SA (Talca, Chile).
+      Eres un experto en SGC e ISO-9001:2015.
       
-      CONTEXTO DEL SISTEMA:
-      - Documento en pantalla: "${documentTitle}"
-      - Empresa: Constructora DEFLUV SA (Líder en defensas ribereñas y obras viales)
+      Documento actual: "${documentTitle}"
       
-      MANDATOS DE RESPUESTA:
-      1. Responde de forma técnica, precisa y siempre en ESPAÑOL.
-      2. Si el usuario adjunta un archivo, analízalo a fondo para detectar riesgos o incumplimientos normativos.
-      3. Cita cláusulas específicas de la ISO-9001:2015 o manuales del MOP si es pertinente.
-      4. Sé directo. No uses introducciones innecesarias. Ve al grano con la recomendación técnica.
+      Instrucciones:
+      1. Responde de forma técnica y profesional en ESPAÑOL.
+      2. Si hay un PDF adjunto, analízalo. Si no, responde basándote en la pregunta.
+      3. Sé directo y útil para la obra.
       
-      PREGUNTA DEL USUARIO: ${userQuestion}
+      Pregunta: ${userQuestion}
     `
 
-    const parts: any[] = [prompt]
-    if (filePart) parts.push(filePart)
-
-    const result = await model.generateContent(parts)
+    const result = await model.generateContent(filePart ? [prompt, filePart] : [prompt])
     const response = await result.response
-    return { text: response.text() }
+    const text = response.text()
+
+    if (!text) throw new Error('La IA devolvió una respuesta vacía.')
+
+    return { text }
     
   } catch (error: any) {
-    console.error('AI Error Detail:', error)
-    // Si falla la v1, intentamos con gemini-pro como respaldo
+    console.error('DEFLUVOT Error:', error)
+    
+    // Si falla el modelo Flash, intentamos un último recurso con Pro
     try {
-        const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' })
-        const result = await fallbackModel.generateContent(userQuestion)
-        const response = await result.response
-        return { text: `[Nota: Respondido por modelo de respaldo] ${response.text()}` }
-    } catch (fallbackError: any) {
-        return { error: `Error crítico de IA: ${error.message || 'No se pudo conectar con el modelo'}` }
+      const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' })
+      const result = await fallbackModel.generateContent(`Responde brevemente en español: ${userQuestion}`)
+      const response = await result.response
+      return { text: `(Modo Respaldo) ${response.text()}` }
+    } catch (finalErr: any) {
+      return { error: `Error técnico: No se pudo conectar con el servicio de IA de Google. Detalle: ${error.message}` }
     }
   }
 }
