@@ -20,7 +20,7 @@ export default function EditPersonnelModal({ isOpen, onClose, record }: Props) {
   
   const [rut, setRut] = useState('')
   const [firstName, setFirstName] = useState('')
-  const [lastName, setLast] = useState('')
+  const [lastName, setLastName] = useState('')
   const [cargo, setCargo] = useState('')
   const [centroCostos, setCentroCostos] = useState('')
   const [entryDate, setEntryDate] = useState('')
@@ -117,7 +117,7 @@ export default function EditPersonnelModal({ isOpen, onClose, record }: Props) {
                 <Edit3 size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-black uppercase tracking-widest">Editar Colaborador</h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest">Editar Colaborador</h3>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">ID: {record.id.slice(0,8)}</p>
              </div>
           </div>
@@ -148,7 +148,7 @@ export default function EditPersonnelModal({ isOpen, onClose, record }: Props) {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Apellidos</label>
                 <input 
-                  type="text" required value={lastName} onChange={(e) => setLast(e.target.value)}
+                  type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
                 />
               </div>
