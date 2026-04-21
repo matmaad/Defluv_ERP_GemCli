@@ -53,8 +53,24 @@ const statIcons: Record<string, any> = {
   'No Cumple': AlertCircle,
 }
 
+// Utility to format date to Chilean format (dd/mm/yyyy)
+const formatDateChile = (dateString: string | null | undefined) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString
+  
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  
+  return `${day}/${month}/${year}`
+}
+
 export default function DocumentMatrixClient({ initialDocuments, stats, departments }: Props) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedDept, setSelectedDept] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('')
+  
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [rejectModalDoc, setRejectModalDoc] = useState<{id: string, title: string} | null>(null)
   const [replaceModalDoc, setReplaceModalDoc] = useState<{id: string, title: string, path: string} | null>(null)
@@ -120,10 +136,20 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
     }
   }
 
-  const filteredDocuments = initialDocuments.filter(doc => 
-    doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    doc.id.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedDept('')
+    setSelectedStatus('')
+  }
+
+  const filteredDocuments = initialDocuments.filter(doc => {
+    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         doc.id.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesDept = selectedDept === '' || doc.department_id === selectedDept
+    const matchesStatus = selectedStatus === '' || doc.current_status === selectedStatus
+    
+    return matchesSearch && matchesDept && matchesStatus
+  })
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto">
@@ -134,7 +160,11 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
           const styles = statusStyles[stat.status] || 'text-gray-600 bg-gray-50 border-gray-200'
           const textColor = styles.split(' ')[1]
           return (
-            <div key={idx} className={`p-4 rounded-xl border-2 bg-white border-gray-100 flex flex-col justify-between h-32 transition-transform hover:scale-105 cursor-pointer`}>
+            <div 
+              key={idx} 
+              onClick={() => setSelectedStatus(stat.status)}
+              className={`p-4 rounded-xl border-2 bg-white ${selectedStatus === stat.status ? 'border-[#0a2d4d] ring-2 ring-[#0a2d4d]/10' : 'border-gray-100'} flex flex-col justify-between h-32 transition-all hover:scale-105 cursor-pointer shadow-sm`}
+            >
               <div className="flex justify-between items-start">
                 <span className={`text-[10px] font-bold uppercase tracking-wider text-gray-400`}>{stat.label}</span>
                 <Icon className={textColor} size={18} />
@@ -158,24 +188,35 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
           />
         </div>
         
-        <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none uppercase">
-          <option>DEPARTAMENTO</option>
+        <select 
+          value={selectedDept}
+          onChange={(e) => setSelectedDept(e.target.value)}
+          className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none uppercase"
+        >
+          <option value="">DEPARTAMENTO (TODOS)</option>
           {departments.map(d => (
             <option key={d.id} value={d.id}>{d.name}</option>
           ))}
         </select>
 
-        <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none">
-          <option>ESTADO</option>
-          <option>Aprobado</option>
-          <option>Pendiente</option>
-          <option>Rechazado</option>
-          <option>Vencido</option>
-          <option>No Cumple</option>
+        <select 
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+          className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none"
+        >
+          <option value="">ESTADO (TODOS)</option>
+          <option value="Aprobado">APROBADO</option>
+          <option value="Pendiente">PENDIENTE</option>
+          <option value="Rechazado">RECHAZADO</option>
+          <option value="Vencido">VENCIDO</option>
+          <option value="No Cumple">NO CUMPLE</option>
         </select>
 
-        <button className="text-gray-400 hover:text-gray-600 flex items-center gap-2 text-sm font-medium px-4">
-           LIMPIAR
+        <button 
+          onClick={clearFilters}
+          className="text-gray-400 hover:text-[#0a2d4d] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 transition-colors"
+        >
+           Limpiar Filtros
         </button>
       </div>
 
@@ -244,10 +285,10 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
                     </span>
                   </td>
                   <td className="px-4 py-2 text-center text-[10px] font-bold text-gray-400 tabular-nums">
-                    {new Date(doc.created_at).toLocaleDateString()}
+                    {formatDateChile(doc.created_at)}
                   </td>
                   <td className="px-4 py-2 text-center text-[10px] font-black text-red-500 tabular-nums">
-                    {doc.due_date ? new Date(doc.due_date).toLocaleDateString() : 'SIN LÍMITE'}
+                    {doc.due_date ? formatDateChile(doc.due_date) : 'SIN LÍMITE'}
                   </td>
                   <td className="px-4 py-2">
                     <span className="text-[10px] font-black uppercase text-gray-500 truncate max-w-[150px] block">
@@ -278,7 +319,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
               {filteredDocuments.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-400 text-sm font-black uppercase tracking-widest">
-                    No se encontraron documentos.
+                    No se encontraron documentos con los filtros seleccionados.
                   </td>
                 </tr>
               )}

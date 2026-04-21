@@ -31,6 +31,17 @@ const statusStyles: Record<string, string> = {
   'Desvinculado': 'bg-red-100 text-red-700 border-red-200',
 }
 
+// Utility to format date to Chilean format (dd/mm/yyyy)
+const formatDateChile = (dateString: string | null | undefined) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 export default function PersonnelClient({ records }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [uploadModalDoc, setUploadModalDoc] = useState<{id: string, name: string} | null>(null)
@@ -151,7 +162,7 @@ export default function PersonnelClient({ records }: Props) {
                       {p.status}
                     </span>
                   </td>
-                  <td className="px-8 py-6 text-xs font-bold text-gray-400 whitespace-nowrap">{new Date(p.entry_date).toLocaleDateString()}</td>
+                  <td className="px-8 py-6 text-xs font-bold text-gray-400 whitespace-nowrap">{formatDateChile(p.entry_date)}</td>
                   <td className="px-8 py-6 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-3 text-gray-300">
                       <button 

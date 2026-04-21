@@ -27,6 +27,21 @@ interface Message {
   timestamp: string
 }
 
+// Utility to format date to Chilean format (dd/mm/yyyy hh:mm)
+const formatDateTimeChile = (dateString: string | null | undefined) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString
+  
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  
+  return `${day}/${month}/${year} ${hours}:${minutes}`
+}
+
 export default function AuditClient({ initialLogs }: Props) {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([
@@ -96,7 +111,7 @@ export default function AuditClient({ initialLogs }: Props) {
                         onClick={() => setSelectedDoc(log.resource_id || 'Documento')}
                       >
                          <td className="px-8 py-5 text-[11px] font-bold text-gray-400 tabular-nums">
-                            {new Date(log.timestamp).toLocaleString()}
+                            {formatDateTimeChile(log.timestamp)}
                          </td>
                          <td className="px-8 py-5 text-xs font-black">
                             <span className="text-blue-600 uppercase tracking-widest">{log.action_type}</span>
