@@ -1,10 +1,10 @@
--- SUPABASE SQL MIGRATION - DEFLUV ERP V2
+-- SUPABASE SQL MIGRATION - DEFLUV ERP V2 (REFINED)
 -- Execute this in your Supabase SQL Editor to synchronize the schema.
 
 -- 1. Ensure extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Update Departments (if exists)
+-- 2. Update Departments
 CREATE TABLE IF NOT EXISTS departments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT UNIQUE NOT NULL,
@@ -15,8 +15,6 @@ CREATE TABLE IF NOT EXISTS departments (
 );
 
 -- 3. Update Profiles/Users
--- Note: Supabase uses auth.users, so we map metadata to a public profiles table.
--- Changed user_id to id as per user request.
 CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
@@ -82,7 +80,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     assigned_to_user_id UUID REFERENCES profiles(id),
     requester_id UUID REFERENCES profiles(id),
     department_id UUID REFERENCES departments(id),
-    due_date TIMESTAMPTZ NOT NULL,
+    due_date TIMESTAMPTZ, -- Optional deadline
     status TEXT DEFAULT 'Pendiente' CHECK (status IN ('Pendiente', 'Aprobado', 'Rechazado', 'Vencido', 'No Cumple')),
     priority TEXT DEFAULT 'Estándar' CHECK (priority IN ('Baja', 'Estándar', 'Urgente', 'Crítico')),
     instruction_file_path TEXT,
@@ -97,7 +95,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     user_id UUID REFERENCES profiles(id),
     action_type TEXT NOT NULL,
     resource_type TEXT,
-    resource_id UUID,
+    resource_id TEXT, -- Changed to TEXT for compatibility
     details JSONB,
     justification TEXT,
     timestamp TIMESTAMPTZ DEFAULT now()
@@ -144,7 +142,7 @@ CREATE TABLE IF NOT EXISTS deadlines (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 12. Row Level Security (RLS)
+-- 12. Row Level Security (RLS) & Policies
 ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
@@ -156,71 +154,44 @@ ALTER TABLE kpis ENABLE ROW LEVEL SECURITY;
 ALTER TABLE personal_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deadlines ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
+-- Helper function to check admin
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Helper function to check if user is admin (optional but cleaner)
--- Using direct lookup in policies for simplicity in this script
+-- General read policies (all authenticated users)
+CREATE POLICY "Allow auth read departments" ON departments FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read profiles" ON profiles FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read documents" ON documents FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read document_versions" ON document_versions FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read permissions" ON permissions FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read tasks" ON tasks FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read audit_logs" ON audit_logs FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read kpis" ON kpis FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read personal_records" ON personal_records FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow auth read deadlines" ON deadlines FOR SELECT TO authenticated USING (true);
 
--- Departments
-CREATE POLICY "Allow authenticated read on departments" ON departments FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on departments" ON departments FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
+-- Admin policies (Full access)
+CREATE POLICY "Admin full departments" ON departments FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full profiles" ON profiles FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full documents" ON documents FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full document_versions" ON document_versions FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full permissions" ON permissions FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full tasks" ON tasks FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full audit_logs" ON audit_logs FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full kpis" ON kpis FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full personal_records" ON personal_records FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin full deadlines" ON deadlines FOR ALL TO authenticated USING (public.is_admin());
 
--- Profiles
-CREATE POLICY "Allow authenticated read on profiles" ON profiles FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow users to update their own profile" ON profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
-CREATE POLICY "Allow admin all on profiles" ON profiles FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Documents
-CREATE POLICY "Allow authenticated read on documents" ON documents FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on documents" ON documents FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Document Versions
-CREATE POLICY "Allow authenticated read on document_versions" ON document_versions FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on document_versions" ON document_versions FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Permissions
-CREATE POLICY "Allow authenticated read on permissions" ON permissions FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on permissions" ON permissions FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Tasks
-CREATE POLICY "Allow authenticated read on tasks" ON tasks FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on tasks" ON tasks FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Audit Logs
-CREATE POLICY "Allow authenticated read on audit_logs" ON audit_logs FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on audit_logs" ON audit_logs FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- KPIs
-CREATE POLICY "Allow authenticated read on kpis" ON kpis FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on kpis" ON kpis FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Personal Records
-CREATE POLICY "Allow authenticated read on personal_records" ON personal_records FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on personal_records" ON personal_records FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
-
--- Deadlines
-CREATE POLICY "Allow authenticated read on deadlines" ON deadlines FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow admin all on deadlines" ON deadlines FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
-);
+-- Specialized policies
+CREATE POLICY "Allow users to log actions" ON audit_logs FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Allow users to update own profile" ON profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
 
 -- 13. Functions & Triggers (Update updated_at)
 CREATE OR REPLACE FUNCTION update_updated_at_column()

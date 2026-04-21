@@ -17,7 +17,7 @@ import {
   X,
   CheckCircle2
 } from 'lucide-react'
-import { AuditLog } from '@/app/types/database'
+import { AuditLog, Document } from '@/app/types/database'
 import { analyzeDocument } from '@/app/actions/ai-actions'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
@@ -54,9 +54,10 @@ const formatDateTimeChile = (dateString: string | null | undefined) => {
 }
 
 export default function AuditClient({ initialLogs, profiles }: Props) {
-  const [selectedDoc, setSelectedDoc] = useState<string | null>(null)
+  const [selectedLog, setSelectedLog] = useState<AuditLogWithDetails | null>(null)
+  const [selectedDocData, setSelectedDocData] = useState<Document | null>(null)
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', text: 'Bienvenido al asistente de auditoría. ¿En qué puedo ayudarte con este documento?', timestamp: new Date().toLocaleTimeString() }
+    { role: 'bot', text: 'Bienvenido al asistente de auditoría. ¿En qué puedo ayudarte con este registro?', timestamp: new Date().toLocaleTimeString() }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -73,16 +74,11 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
   const router = useRouter()
 
   useEffect(() => {
-    // Retention policy logic: Jan 5th deletion of previous year
     const now = new Date()
-    const currentYear = now.getFullYear()
-    const targetDate = new Date(currentYear, 0, 5) // Jan 5th
-    
-    // If we are in December, show warning for upcoming Jan 5th deletion
+    const targetDate = new Date(now.getFullYear(), 0, 5)
     if (now.getMonth() === 11 || (now.getMonth() === 0 && now.getDate() <= 5)) {
       const diffTime = targetDate.getTime() - now.getTime()
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      
       if (diffDays >= 0 && diffDays <= 15) {
         setDaysUntilDeletion(diffDays)
         setShowRetentionWarning(true)
@@ -90,19 +86,48 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
     }
   }, [])
 
+  const handleSelectLog = async (log: AuditLogWithDetails) => {
+    setSelectedLog(log)
+    setMessages([{ role: 'bot', text: `He cargado el registro de auditoría. Es un evento de ${log.action_type}. ¿Tienes dudas sobre este movimiento?`, timestamp: new Date().toLocaleTimeString() }])
+    
+    // If it's a document resource, try to fetch its data for the bot
+    if (log.resource_type === 'document' || log.resource_type === 'ARCHIVO') {
+      const { data } = await supabase.from('documents').select('*').eq('id', log.resource_id).single()
+      if (data) setSelectedDocData(data)
+    } else {
+      setSelectedDocData(null)
+    }
+  }
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || !selectedDoc || loading) return
+    if (!input.trim() || !selectedLog || loading) return
+
     const userMsg: Message = { role: 'user', text: input, timestamp: new Date().toLocaleTimeString() }
     setMessages(prev => [...prev, userMsg])
     const currentInput = input
     setInput('')
     setLoading(true)
+
     try {
-      const response = await analyzeDocument(selectedDoc, currentInput)
-      const botMsg: Message = { role: 'bot', text: response.text || response.error || 'No pude procesar tu solicitud.', timestamp: new Date().toLocaleTimeString() }
+      // Pass the storage path if it's a document log
+      const response = await analyzeDocument(
+        selectedDocData?.storage_path || null,
+        selectedDocData?.title || selectedLog.resource_id,
+        currentInput
+      )
+      
+      const botMsg: Message = { 
+        role: 'bot', 
+        text: response.text || response.error || 'No pude procesar tu solicitud.', 
+        timestamp: new Date().toLocaleTimeString() 
+      }
       setMessages(prev => [...prev, botMsg])
-    } catch (error) { console.error('Chat error:', error) } finally { setLoading(false) }
+    } catch (error) {
+      console.error('Chat error:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filteredLogs = initialLogs.filter(log => {
@@ -129,15 +154,19 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
       )}
 
       {/* Internal Navigation */}
-      {selectedDoc && (
+      {selectedLog && (
         <div className="px-8 pt-4">
-           <button onClick={() => setSelectedDoc(null)} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm group">
-             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Volver al Listado
+           <button 
+            onClick={() => {setSelectedLog(null); setSelectedDocData(null)}} 
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm group"
+           >
+             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+             Volver al Listado
            </button>
         </div>
       )}
 
-      {!selectedDoc ? (
+      {!selectedLog ? (
         <div className="flex-1 p-8 space-y-6 overflow-y-auto">
            {/* Top Actions Bar */}
            <div className="flex justify-end gap-3">
@@ -152,13 +181,11 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
               </button>
            </div>
 
-           {/* Filters Grid (Matching Image) */}
+           {/* Filters Grid */}
            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
               <div className="space-y-1.5">
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Desde</label>
-                 <div className="relative">
-                    <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-900 outline-none focus:ring-2 focus:ring-blue-500/20" />
-                 </div>
+                 <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-900 outline-none focus:ring-2 focus:ring-blue-500/20" />
               </div>
               <div className="space-y-1.5">
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Hasta</label>
@@ -178,7 +205,6 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                     <option value="Reemplazo">Reemplazo</option>
                     <option value="Aprobación">Aprobación</option>
                     <option value="Creación">Creación</option>
-                    <option value="Configuración">Configuración</option>
                  </select>
               </div>
               <button className="h-11 bg-gray-50 border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] flex items-center justify-center gap-2 hover:bg-gray-100 transition-all uppercase tracking-widest">
@@ -196,12 +222,16 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                           <th className="px-8 py-5 w-56">USUARIO</th>
                           <th className="px-8 py-5 w-40">ACCIÓN</th>
                           <th className="px-8 py-5 w-56">DOCUMENTO</th>
-                          <th className="px-8 py-5 w-auto">DESCRIPCION</th>
+                          <th className="px-8 py-5 w-auto">DESCRIPCIÓN</th>
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 font-medium">
                        {filteredLogs.map((log) => (
-                         <tr key={log.id} className="hover:bg-gray-50/50 transition-colors group cursor-pointer" onClick={() => setSelectedDoc(log.id)}>
+                         <tr 
+                            key={log.id} 
+                            className="hover:bg-gray-50/50 transition-colors group cursor-pointer" 
+                            onClick={() => handleSelectLog(log)}
+                         >
                             <td className="px-8 py-5 text-[11px] font-bold text-gray-400 tabular-nums">{formatDateTimeChile(log.timestamp)}</td>
                             <td className="px-8 py-5 text-xs font-black uppercase">{log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA'}</td>
                             <td className="px-8 py-5 text-xs font-black">
@@ -211,7 +241,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                             </td>
                             <td className="px-8 py-5 text-xs font-bold text-blue-600 underline group-hover:text-blue-800 truncate">{log.resource_id.slice(0,8)}...</td>
                             <td className="px-8 py-5">
-                               <p className="text-[11px] text-gray-500 leading-relaxed italic">{log.justification || 'Sin descripción adicional.'}</p>
+                               <p className="text-[11px] text-gray-500 leading-relaxed italic line-clamp-2">{log.justification || 'Sin descripción adicional.'}</p>
                             </td>
                          </tr>
                        ))}
@@ -221,31 +251,58 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                     </tbody>
                  </table>
               </div>
-              <div className="px-8 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                 <span>Mostrando {filteredLogs.length} registros</span>
-              </div>
            </div>
         </div>
       ) : (
-        /* SGC-Bot Split View remains integrated */
-        <div className="flex-1 flex overflow-hidden border-t border-gray-100">
+        /* Split View: Analysis + Bot */
+        <div className="flex-1 flex overflow-hidden border-t border-gray-200">
            <div className="flex-1 flex flex-col bg-gray-100 relative">
               <div className="bg-white p-4 border-b border-gray-200 flex justify-between items-center px-12">
-                 <span className="text-xs font-black text-[#0a2d4d] uppercase tracking-widest">VISOR DE CUMPLIMIENTO</span>
+                 <span className="text-xs font-black text-[#0a2d4d] uppercase tracking-widest">Análisis de Registro</span>
               </div>
               <div className="flex-1 p-12 overflow-y-auto flex justify-center bg-gray-200/50">
-                 <div className="w-[600px] h-[842px] bg-white shadow-2xl rounded-sm border border-gray-300 relative flex items-center justify-center">
-                    <div className="text-center space-y-4">
-                       <FileText size={80} className="text-gray-100 mx-auto" />
-                       <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">IA Analizando Registro...</p>
+                 <div className="w-[600px] h-fit min-h-[400px] bg-white shadow-2xl rounded-xl border border-gray-100 p-12 space-y-8">
+                    <div className="flex justify-between items-start border-b border-gray-100 pb-8">
+                       <div className="space-y-2">
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Trazabilidad Técnica</p>
+                          <h4 className="text-2xl font-black text-[#0a2d4d] uppercase">{selectedLog.action_type}</h4>
+                       </div>
+                       <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
+                          <FileText size={32} />
+                       </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-8 text-[#0a2d4d]">
+                       <div className="space-y-1">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Fecha y Hora</p>
+                          <p className="text-xs font-bold">{formatDateTimeChile(selectedLog.timestamp)}</p>
+                       </div>
+                       <div className="space-y-1">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Operador Responsable</p>
+                          <p className="text-xs font-bold uppercase">{selectedLog.user ? `${selectedLog.user.first_name} ${selectedLog.user.last_name}` : 'SISTEMA'}</p>
+                       </div>
+                       <div className="col-span-2 space-y-1">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Descripción del Evento</p>
+                          <p className="text-xs font-medium leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 italic">{selectedLog.justification || 'No se proporcionó descripción adicional.'}</p>
+                       </div>
+                    </div>
+
+                    <div className="pt-8 border-t border-gray-100 text-center">
+                       <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">IA Analizando este movimiento...</p>
                     </div>
                  </div>
               </div>
               <div className="bg-[#0a2d4d] p-6 flex justify-end items-center px-12">
-                 <button onClick={() => setSelectedDoc(null)} className="px-8 py-3 bg-white text-[#0a2d4d] hover:bg-gray-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"><CheckCircle2 size={16} /> Finalizar Revisión</button>
+                 <button 
+                  onClick={() => {setSelectedLog(null); setSelectedDocData(null)}} 
+                  className="px-8 py-3 bg-white text-[#0a2d4d] hover:bg-gray-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl"
+                 >
+                    <CheckCircle2 size={16} /> Finalizar Análisis
+                 </button>
               </div>
            </div>
 
+           {/* SGC-Bot Sidebar */}
            <div className="w-[450px] bg-white border-l border-gray-100 flex flex-col shadow-2xl relative z-10">
               <div className="p-8 border-b border-gray-50 flex items-center gap-4 bg-gray-50/50 text-[#0a2d4d]">
                  <div className="w-12 h-12 rounded-xl bg-[#0a2d4d] flex items-center justify-center shadow-lg shadow-blue-900/20"><Bot className="text-white" size={28} /></div>
@@ -254,21 +311,43 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                     <p className="text-[9px] font-bold text-green-600 uppercase tracking-tighter animate-pulse">● IA Activa</p>
                  </div>
               </div>
+
               <div className="flex-1 p-8 overflow-y-auto space-y-6 bg-white">
                  {messages.map((msg, idx) => (
                    <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
                       <div className="flex items-center gap-2 text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">
                          {msg.role === 'bot' ? <><Bot size={12} className="text-[#0a2d4d]" /> SGC-BOT</> : <>OPERADOR <User size={12} /></>}
                       </div>
-                      <div className={`max-w-[90%] p-5 rounded-3xl text-xs font-medium leading-relaxed shadow-sm border ${msg.role === 'user' ? 'bg-[#0a2d4d] text-white rounded-tr-none border-blue-900' : 'bg-gray-50 text-[#0a2d4d] rounded-tl-none border-gray-100'}`}>{msg.text}</div>
+                      <div className={`max-w-[90%] p-5 rounded-3xl text-xs font-medium leading-relaxed shadow-sm border ${msg.role === 'user' ? 'bg-[#0a2d4d] text-white rounded-tr-none border-blue-900' : 'bg-gray-50 text-[#0a2d4d] rounded-tl-none border-gray-100'}`}>
+                         {msg.text}
+                      </div>
+                      <span className="text-[8px] font-bold text-gray-300 uppercase">{msg.timestamp}</span>
                    </div>
                  ))}
-                 {loading && <div className="flex items-center gap-3 text-gray-400 animate-pulse"><Loader2 size={16} className="animate-spin" /><span className="text-[9px] font-black uppercase tracking-widest">Analizando...</span></div>}
+                 {loading && (
+                   <div className="flex items-center gap-3 text-gray-400 animate-pulse">
+                      <Loader2 size={16} className="animate-spin" />
+                      <span className="text-[9px] font-black uppercase tracking-widest">Procesando Consulta...</span>
+                   </div>
+                 )}
               </div>
+
               <form onSubmit={handleSendMessage} className="p-8 border-t border-gray-100 bg-gray-50/50">
                  <div className="relative group">
-                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Consultar sobre este registro..." className="w-full bg-white border border-gray-200 rounded-2xl pl-6 pr-14 py-4 text-xs font-medium outline-none focus:ring-4 focus:ring-[#0a2d4d]/5 focus:border-[#0a2d4d] transition-all shadow-inner text-zinc-900 placeholder:text-gray-400" />
-                    <button type="submit" disabled={!input.trim() || loading} className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-[#0a2d4d] text-white rounded-xl hover:bg-blue-900 transition-all disabled:opacity-50 shadow-lg shadow-blue-900/20 active:scale-95"><Send size={18} /></button>
+                    <input 
+                       type="text" 
+                       value={input}
+                       onChange={(e) => setInput(e.target.value)}
+                       placeholder="Pregunta a la IA sobre este registro..." 
+                       className="w-full bg-white border border-gray-200 rounded-2xl pl-6 pr-14 py-4 text-xs font-medium outline-none focus:ring-4 focus:ring-[#0a2d4d]/5 focus:border-[#0a2d4d] transition-all shadow-inner text-zinc-900 placeholder:text-gray-400"
+                    />
+                    <button 
+                      type="submit"
+                      disabled={!input.trim() || loading}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-[#0a2d4d] text-white rounded-xl hover:bg-blue-900 transition-all disabled:opacity-50 shadow-lg shadow-blue-900/20 active:scale-95"
+                    >
+                       <Send size={18} />
+                    </button>
                  </div>
               </form>
            </div>
