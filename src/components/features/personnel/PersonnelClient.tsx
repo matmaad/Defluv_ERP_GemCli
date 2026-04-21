@@ -48,12 +48,15 @@ export default function PersonnelClient({ records }: Props) {
         .delete()
         .eq('record_id', recordId)
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase Delete Error:', error)
+        alert(`Error de Supabase: ${error.message} (Código: ${error.code})`)
+        throw error
+      }
 
       router.refresh()
     } catch (error) {
       console.error('Error deleting personnel:', error)
-      alert('Error al eliminar el registro.')
     } finally {
       setDeletingId(null)
     }
