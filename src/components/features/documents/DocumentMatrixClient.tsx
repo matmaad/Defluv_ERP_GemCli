@@ -291,9 +291,14 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
                     {doc.due_date ? formatDateChile(doc.due_date) : 'SIN LÍMITE'}
                   </td>
                   <td className="px-4 py-2">
-                    <span className="text-[10px] font-black uppercase text-gray-500 truncate max-w-[150px] block">
-                       {doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black uppercase text-[#0a2d4d] truncate max-w-[150px]">
+                         {doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}
+                      </span>
+                      <span className="text-[8px] font-bold uppercase text-gray-400 tracking-tighter">
+                         {doc.department?.name || 'S/D'}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-1.5">
