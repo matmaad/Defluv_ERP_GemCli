@@ -46,17 +46,14 @@ export default function PersonnelClient({ records }: Props) {
       const { error } = await supabase
         .from('personal_records')
         .delete()
-        .eq('record_id', recordId)
+        .eq('id', recordId)
 
-      if (error) {
-        console.error('Supabase Delete Error:', error)
-        alert(`Error de Supabase: ${error.message} (Código: ${error.code})`)
-        throw error
-      }
+      if (error) throw error
 
       router.refresh()
     } catch (error) {
       console.error('Error deleting personnel:', error)
+      alert('Error al eliminar el registro. Verifique sus permisos.')
     } finally {
       setDeletingId(null)
     }
@@ -144,12 +141,12 @@ export default function PersonnelClient({ records }: Props) {
                   <div className="flex justify-end gap-3 text-gray-300">
                     <button className="p-1 hover:text-[#0a2d4d] transition-colors" title="Ver Documentos"><FileText size={18} /></button>
                     <button 
-                      onClick={() => handleDelete(p.record_id, `${p.first_name} ${p.last_name}`)}
-                      disabled={deletingId === p.record_id}
+                      onClick={() => handleDelete(p.id, `${p.first_name} ${p.last_name}`)}
+                      disabled={deletingId === p.id}
                       className="p-1 hover:text-red-600 transition-colors disabled:opacity-50"
                       title="Eliminar Registro"
                     >
-                      {deletingId === p.record_id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                      {deletingId === p.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                     </button>
                     <button className="p-1 hover:text-blue-600 transition-colors" title="Agregar Documentación"><Plus size={18} /></button>
                   </div>

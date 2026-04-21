@@ -103,7 +103,7 @@ export interface KPI {
 }
 
 export interface PersonalRecord {
-  record_id: string;
+  id: string;
   user_id?: string; // Link to profile if they are a system user
   rut: string;
   first_name: string;
