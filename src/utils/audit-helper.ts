@@ -5,20 +5,28 @@ export async function logAction(
   resourceType: string, 
   resourceId: string, 
   details: any = {}, 
-  justification?: string
+  description?: string
 ) {
   const supabase = createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-  await supabase.from('audit_logs').insert({
-    user_id: user.id,
-    action_type: actionType,
-    resource_type: resourceType,
-    resource_id: resourceId,
-    details,
-    justification,
-    timestamp: new Date().toISOString()
-  })
+    const { error } = await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      action_type: actionType,
+      resource_type: resourceType,
+      resource_id: resourceId.toString(),
+      details,
+      justification: description, // Mapping description to justification column
+      timestamp: new Date().toISOString()
+    })
+
+    if (error) {
+      console.error('Audit Log Error:', error.message)
+    }
+  } catch (err) {
+    console.error('Failed to log action:', err)
+  }
 }

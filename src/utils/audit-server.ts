@@ -7,18 +7,26 @@ export async function logActionServer(
   description: string,
   details: any = {}
 ) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
+  try {
+    const supabase = await createClient()
+    
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-  await supabase.from('audit_logs').insert({
-    user_id: user.id,
-    action_type: actionType,
-    resource_type: resourceType,
-    resource_id: resourceId,
-    justification: description, // We use justification column for description
-    details,
-    timestamp: new Date().toISOString()
-  })
+    const { error } = await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      action_type: actionType,
+      resource_type: resourceType,
+      resource_id: resourceId.toString(),
+      justification: description, 
+      details,
+      timestamp: new Date().toISOString()
+    })
+
+    if (error) {
+      console.error('Audit Log Server Error:', error.message)
+    }
+  } catch (err) {
+    console.error('Failed to log action from server:', err)
+  }
 }
