@@ -11,7 +11,7 @@ import {
   CheckCircle2, 
   Eye, 
   Download, 
-  ChevronLeft,
+  ChevronLeft, 
   ChevronRight,
   FileUp,
   Check,
@@ -53,16 +53,13 @@ const statIcons: Record<string, any> = {
   'No Cumple': AlertCircle,
 }
 
-// Utility to format date to Chilean format (dd/mm/yyyy)
 const formatDateChile = (dateString: string | null | undefined) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   if (isNaN(date.getTime())) return dateString
-  
   const day = String(date.getDate()).padStart(2, '0')
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const year = date.getFullYear()
-  
   return `${day}/${month}/${year}`
 }
 
@@ -70,7 +67,6 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDept, setSelectedDept] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
-  
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [rejectModalDoc, setRejectModalDoc] = useState<{id: string, title: string} | null>(null)
   const [replaceModalDoc, setReplaceModalDoc] = useState<{id: string, title: string, path: string} | null>(null)
@@ -83,11 +79,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
   const handleApprove = async (docId: string) => {
     setActionLoading(docId)
     try {
-      const { error } = await supabase
-        .from('documents')
-        .update({ current_status: 'Aprobado' })
-        .eq('id', docId)
-      
+      const { error } = await supabase.from('documents').update({ current_status: 'Aprobado' }).eq('id', docId)
       if (error) throw error
       router.refresh()
     } catch (error) {
@@ -101,12 +93,8 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
   const handleDownload = async (path: string, fileName: string, docId: string) => {
     setDownloadLoading(docId)
     try {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .download(path)
-
+      const { data, error } = await supabase.storage.from('documents').download(path)
       if (error) throw error
-
       const url = window.URL.createObjectURL(data)
       const link = document.createElement('a')
       link.href = url
@@ -122,32 +110,11 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
     }
   }
 
-  const handlePreview = async (path: string) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(path, 60)
-
-      if (error) throw error
-      window.open(data.signedUrl, '_blank')
-    } catch (error) {
-      console.error('Preview error:', error)
-      alert('Error al abrir la vista previa.')
-    }
-  }
-
-  const clearFilters = () => {
-    setSearchTerm('')
-    setSelectedDept('')
-    setSelectedStatus('')
-  }
-
   const filteredDocuments = initialDocuments.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          doc.id.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesDept = selectedDept === '' || doc.department_id === selectedDept
     const matchesStatus = selectedStatus === '' || doc.current_status === selectedStatus
-    
     return matchesSearch && matchesDept && matchesStatus
   })
 
@@ -162,14 +129,14 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
           return (
             <div 
               key={idx} 
-              onClick={() => setSelectedStatus(stat.status)}
+              onClick={() => setSelectedStatus(selectedStatus === stat.status ? '' : stat.status)}
               className={`p-4 rounded-xl border-2 bg-white ${selectedStatus === stat.status ? 'border-[#0a2d4d] ring-2 ring-[#0a2d4d]/10' : 'border-gray-100'} flex flex-col justify-between h-32 transition-all hover:scale-105 cursor-pointer shadow-sm`}
             >
               <div className="flex justify-between items-start">
-                <span className={`text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-pre-line`}>{stat.label}</span>
+                <span className={`text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-pre-line leading-tight`}>{stat.label}</span>
                 <Icon className={textColor} size={18} />
               </div>
-              <span className={`text-4xl font-bold ${textColor}`}>{stat.count}</span>
+              <span className={`text-4xl font-black ${textColor}`}>{stat.count}</span>
             </div>
           )
         })}
@@ -213,26 +180,26 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
         </select>
 
         <button 
-          onClick={clearFilters}
+          onClick={() => {setSearchTerm(''); setSelectedDept(''); setSelectedStatus('')}}
           className="text-gray-400 hover:text-[#0a2d4d] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 transition-colors"
         >
            Limpiar Filtros
         </button>
       </div>
 
-      {/* Table Section */}
+      {/* Table Section with Fixed Columns */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
+          <table className="w-full text-left border-collapse min-w-[1000px] table-fixed">
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center w-24">Gestión</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Estado</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Fecha Subida</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center text-red-500">Fecha Límite</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400">Subido Por</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</th>
+                <th className="w-24 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Gestión</th>
+                <th className="w-auto px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</th>
+                <th className="w-32 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Estado</th>
+                <th className="w-32 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Fecha Subida</th>
+                <th className="w-32 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center text-red-500">Fecha Límite</th>
+                <th className="w-40 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400">Subido Por</th>
+                <th className="w-24 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 font-medium">
@@ -242,125 +209,60 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
                     <div className="flex items-center gap-1.5 justify-center">
                       {doc.current_status === 'Pendiente' ? (
                         <>
-                          <button 
-                            onClick={() => handleApprove(doc.id)}
-                            disabled={!!actionLoading}
-                            className="p-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
-                            title="Aprobar"
-                          >
+                          <button onClick={() => handleApprove(doc.id)} className="p-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 border border-green-100 transition-colors">
                             {actionLoading === doc.id ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                           </button>
-                          <button 
-                            onClick={() => setRejectModalDoc({id: doc.id, title: doc.title})}
-                            disabled={!!actionLoading}
-                            className="p-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
-                            title="Rechazar"
-                          >
+                          <button onClick={() => setRejectModalDoc({id: doc.id, title: doc.title})} className="p-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 border border-red-100 transition-colors">
                             <X size={14} />
                           </button>
                         </>
                       ) : (
-                        <button 
-                          onClick={() => setReplaceModalDoc({id: doc.id, title: doc.title, path: doc.storage_path})}
-                          className="p-1 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
-                          title="Reemplazar / Nueva Versión"
-                        >
+                        <button onClick={() => setReplaceModalDoc({id: doc.id, title: doc.title, path: doc.storage_path})} className="p-1 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 border border-blue-100 transition-colors">
                           <RefreshCcw size={14} />
                         </button>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-2">
-                    <div className="max-w-xs">
-                      <p className="text-xs font-black uppercase truncate">{doc.title}</p>
+                  <td className="px-4 py-2 overflow-hidden">
+                    <div className="truncate">
+                      <p className="text-xs font-black uppercase truncate" title={doc.title}>{doc.title}</p>
                       <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{doc.id.slice(0, 8)} • {doc.department?.name || 'S/D'}</p>
-                      {doc.rejection_comment && doc.current_status === 'Rechazado' && (
-                        <p className="text-[9px] text-red-500 font-black mt-1 uppercase italic border-l-2 border-red-500 pl-2">Motivo: {doc.rejection_comment}</p>
-                      )}
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black border ${statusStyles[doc.current_status]} uppercase tracking-widest`}>
+                  <td className="px-4 py-2 text-center overflow-hidden">
+                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black border ${statusStyles[doc.current_status]} uppercase tracking-widest whitespace-nowrap`}>
                       ● {doc.current_status}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-center text-[10px] font-bold text-gray-400 tabular-nums">
-                    {formatDateChile(doc.created_at)}
-                  </td>
-                  <td className="px-4 py-2 text-center text-[10px] font-black text-red-500 tabular-nums">
-                    {doc.due_date ? formatDateChile(doc.due_date) : 'SIN LÍMITE'}
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase text-[#0a2d4d] truncate max-w-[150px]">
-                         {doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}
-                      </span>
-                      <span className="text-[8px] font-bold uppercase text-gray-400 tracking-tighter">
-                         {doc.department?.name || 'S/D'}
-                      </span>
+                  <td className="px-4 py-2 text-center text-[10px] font-bold text-gray-400 tabular-nums">{formatDateChile(doc.created_at)}</td>
+                  <td className="px-4 py-2 text-center text-[10px] font-black text-red-500 tabular-nums">{doc.due_date ? formatDateChile(doc.due_date) : 'SIN LÍMITE'}</td>
+                  <td className="px-4 py-2 overflow-hidden">
+                    <div className="flex flex-col truncate">
+                      <span className="text-[10px] font-black uppercase text-[#0a2d4d] truncate">{doc.uploader ? `${doc.uploader.first_name} ${doc.uploader.last_name}` : 'SISTEMA'}</span>
+                      <span className="text-[8px] font-bold uppercase text-gray-400 tracking-tighter truncate">{doc.department?.name || 'S/D'}</span>
                     </div>
                   </td>
                   <td className="px-4 py-2 text-right">
                     <div className="flex justify-end gap-1.5">
-                      <button 
-                        onClick={() => handlePreview(doc.storage_path)}
-                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Ver Online"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleDownload(doc.storage_path, doc.file_name, doc.id)}
-                        disabled={downloadLoading === doc.id}
-                        className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Descargar Archivo"
-                      >
-                        {downloadLoading === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                      </button>
+                      <button className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Ver Online"><Eye size={16} /></button>
+                      <button onClick={() => handleDownload(doc.storage_path, doc.file_name, doc.id)} className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg" title="Descargar">{downloadLoading === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}</button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {filteredDocuments.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400 text-sm font-black uppercase tracking-widest">
-                    No se encontraron documentos con los filtros seleccionados.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* FAB Button */}
-      <button 
-        onClick={() => setIsUploadModalOpen(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-[#0a2d4d] text-white rounded-xl shadow-xl flex items-center justify-center hover:scale-110 transition-transform group"
-      >
+      {/* Modals remain the same */}
+      <UploadDocumentModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} departments={departments} />
+      <RejectDocumentModal isOpen={!!rejectModalDoc} onClose={() => setRejectModalDoc(null)} documentId={rejectModalDoc?.id || ''} documentTitle={rejectModalDoc?.title || ''} />
+      <ReplaceDocumentModal isOpen={!!replaceModalDoc} onClose={() => setReplaceModalDoc(null)} documentId={replaceModalDoc?.id || ''} documentTitle={replaceModalDoc?.title || ''} currentPath={replaceModalDoc?.path || ''} />
+      
+      <button onClick={() => setIsUploadModalOpen(true)} className="fixed bottom-8 right-8 w-14 h-14 bg-[#0a2d4d] text-white rounded-xl shadow-xl flex items-center justify-center hover:scale-110 transition-transform group">
         <FileUp size={24} className="group-hover:animate-bounce" />
       </button>
-
-      <UploadDocumentModal 
-        isOpen={isUploadModalOpen} 
-        onClose={() => setIsUploadModalOpen(false)} 
-        departments={departments}
-      />
-
-      <RejectDocumentModal 
-        isOpen={!!rejectModalDoc}
-        onClose={() => setRejectModalDoc(null)}
-        documentId={rejectModalDoc?.id || ''}
-        documentTitle={rejectModalDoc?.title || ''}
-      />
-
-      <ReplaceDocumentModal 
-        isOpen={!!replaceModalDoc}
-        onClose={() => setReplaceModalDoc(null)}
-        documentId={replaceModalDoc?.id || ''}
-        documentTitle={replaceModalDoc?.title || ''}
-        currentPath={replaceModalDoc?.path || ''}
-      />
     </div>
   )
 }
