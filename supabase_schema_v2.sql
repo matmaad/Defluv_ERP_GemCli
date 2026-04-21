@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 2. Update Departments (if exists)
 CREATE TABLE IF NOT EXISTS departments (
-    department_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT UNIQUE NOT NULL,
     description TEXT,
     icon TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'regular_user' CHECK (role IN ('admin', 'sub_admin', 'regular_user')),
-    department_id UUID REFERENCES departments(department_id),
+    department_id UUID REFERENCES departments(id),
     is_active BOOLEAN DEFAULT TRUE,
     avatar_url TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
@@ -32,11 +32,11 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 -- 4. Documents Table
 CREATE TABLE IF NOT EXISTS documents (
-    document_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     document_type TEXT,
     articulo TEXT, -- Mandatory for MOP contracts
-    department_id UUID REFERENCES departments(department_id),
+    department_id UUID REFERENCES departments(id),
     responsible_user_id UUID REFERENCES profiles(id),
     current_status TEXT NOT NULL DEFAULT 'Pendiente' CHECK (current_status IN ('Pendiente', 'Aprobado', 'Rechazado', 'Vencido', 'No Cumple')),
     uploaded_by_user_id UUID REFERENCES profiles(id),
@@ -51,8 +51,8 @@ CREATE TABLE IF NOT EXISTS documents (
 
 -- 5. Document Versions
 CREATE TABLE IF NOT EXISTS document_versions (
-    version_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    document_id UUID REFERENCES documents(document_id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
     storage_path TEXT NOT NULL,
     uploaded_by_user_id UUID REFERENCES profiles(id),
     reason_for_change TEXT NOT NULL,
@@ -62,9 +62,9 @@ CREATE TABLE IF NOT EXISTS document_versions (
 
 -- 6. Permissions Table (Access Control Matrix)
 CREATE TABLE IF NOT EXISTS permissions (
-    permission_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-    department_id UUID REFERENCES departments(department_id) ON DELETE CASCADE,
+    department_id UUID REFERENCES departments(id) ON DELETE CASCADE,
     can_view BOOLEAN DEFAULT FALSE,
     can_edit BOOLEAN DEFAULT FALSE,
     can_approve BOOLEAN DEFAULT FALSE,
@@ -75,12 +75,12 @@ CREATE TABLE IF NOT EXISTS permissions (
 
 -- 7. Tasks Table
 CREATE TABLE IF NOT EXISTS tasks (
-    task_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     description TEXT,
     assigned_to_user_id UUID REFERENCES profiles(id),
     requester_id UUID REFERENCES profiles(id),
-    department_id UUID REFERENCES departments(department_id),
+    department_id UUID REFERENCES departments(id),
     due_date TIMESTAMPTZ NOT NULL,
     status TEXT DEFAULT 'Pendiente' CHECK (status IN ('Pendiente', 'Aprobado', 'Rechazado', 'Vencido', 'No Cumple')),
     priority TEXT DEFAULT 'Estándar' CHECK (priority IN ('Baja', 'Estándar', 'Urgente', 'Crítico')),
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 
 -- 8. Audit Logs
 CREATE TABLE IF NOT EXISTS audit_logs (
-    log_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES profiles(id),
     action_type TEXT NOT NULL,
     resource_type TEXT,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 -- 9. KPI Table
 CREATE TABLE IF NOT EXISTS kpis (
-    kpi_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     kpi_name TEXT NOT NULL,
     value NUMERIC NOT NULL,
     unit TEXT,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS kpis (
 
 -- 10. Personal Records
 CREATE TABLE IF NOT EXISTS personal_records (
-    record_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES profiles(id),
     rut TEXT UNIQUE NOT NULL,
     first_name TEXT NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS personal_records (
 
 -- 11. Deadlines Table
 CREATE TABLE IF NOT EXISTS deadlines (
-    deadline_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     description TEXT,
     due_date TIMESTAMPTZ NOT NULL,

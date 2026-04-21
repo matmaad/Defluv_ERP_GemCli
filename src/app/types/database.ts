@@ -18,7 +18,7 @@ export interface Profile {
 }
 
 export interface Department {
-  department_id: string;
+  id: string;
   name: string;
   description?: string;
   icon?: string;
@@ -27,7 +27,7 @@ export interface Department {
 }
 
 export interface Document {
-  document_id: string;
+  id: string;
   title: string;
   document_type: string; // e.g., 'Protocolo', 'Manual', 'Plano'
   articulo?: string; // Mandatory for MOP contracts
@@ -45,7 +45,7 @@ export interface Document {
 }
 
 export interface DocumentVersion {
-  version_id: string;
+  id: string;
   document_id: string;
   storage_path: string;
   uploaded_by_user_id: string;
@@ -55,7 +55,7 @@ export interface DocumentVersion {
 }
 
 export interface Permission {
-  permission_id: string;
+  id: string;
   user_id: string;
   department_id: string;
   can_view: boolean;
@@ -66,7 +66,7 @@ export interface Permission {
 }
 
 export interface Task {
-  task_id: string;
+  id: string;
   title: string;
   description?: string;
   assigned_to_user_id: string;
@@ -82,7 +82,7 @@ export interface Task {
 }
 
 export interface AuditLog {
-  log_id: string;
+  id: string;
   user_id: string;
   action_type: string; // 'document_upload', 'document_replace', 'permission_change', etc.
   resource_type: string; // 'document', 'user', 'permission'
@@ -93,7 +93,7 @@ export interface AuditLog {
 }
 
 export interface KPI {
-  kpi_id: string;
+  id: string;
   kpi_name: string;
   value: number;
   unit: string; // '%', 'count', etc.
@@ -120,7 +120,7 @@ export interface PersonalRecord {
 }
 
 export interface Deadline {
-  deadline_id: string;
+  id: string;
   name: string;
   description?: string;
   due_date: string;

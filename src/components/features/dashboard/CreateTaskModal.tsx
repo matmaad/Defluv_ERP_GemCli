@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 interface Props {
   isOpen: boolean
   onClose: () => void
-  departments: { department_id: string; name: string }[]
+  departments: { id: string; name: string }[]
   users: { id: string; first_name: string; last_name: string }[]
 }
 
@@ -135,7 +135,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
                 >
                   <option value="">Seleccionar...</option>
                   {departments.map(d => (
-                    <option key={d.department_id} value={d.department_id}>{d.name}</option>
+                    <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
                 </select>
               </div>

@@ -174,9 +174,9 @@ export default function AccessControlClient({ profiles, departments, permissions
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                        {departments.map((d) => {
-                         const perm = getUserPerm(d.department_id)
+                         const perm = getUserPerm(d.id)
                          return (
-                           <tr key={d.department_id} className="hover:bg-gray-50/50 transition-colors group">
+                           <tr key={d.id} className="hover:bg-gray-50/50 transition-colors group">
                               <td className="px-8 py-6">
                                  <div className="flex items-center gap-4">
                                     <Box className="text-gray-300 group-hover:text-blue-600 transition-colors" size={20} />
@@ -187,7 +187,7 @@ export default function AccessControlClient({ profiles, departments, permissions
                                  <input 
                                   type="checkbox" 
                                   checked={perm?.can_view || false} 
-                                  onChange={() => handleCheckboxChange(d.department_id, 'can_view')}
+                                  onChange={() => handleCheckboxChange(d.id, 'can_view')}
                                   className="w-5 h-5 rounded-lg border-gray-200 text-[#0a2d4d] focus:ring-[#0a2d4d]/20 cursor-pointer" 
                                  />
                               </td>
@@ -195,7 +195,7 @@ export default function AccessControlClient({ profiles, departments, permissions
                                  <input 
                                   type="checkbox" 
                                   checked={perm?.can_edit || false} 
-                                  onChange={() => handleCheckboxChange(d.department_id, 'can_edit')}
+                                  onChange={() => handleCheckboxChange(d.id, 'can_edit')}
                                   className="w-5 h-5 rounded-lg border-gray-200 text-[#0a2d4d] focus:ring-[#0a2d4d]/20 cursor-pointer" 
                                  />
                               </td>
@@ -203,7 +203,7 @@ export default function AccessControlClient({ profiles, departments, permissions
                                  <input 
                                   type="checkbox" 
                                   checked={perm?.can_approve || false} 
-                                  onChange={() => handleCheckboxChange(d.department_id, 'can_approve')}
+                                  onChange={() => handleCheckboxChange(d.id, 'can_approve')}
                                   className="w-5 h-5 rounded-lg border-gray-200 text-[#0a2d4d] focus:ring-[#0a2d4d]/20 cursor-pointer" 
                                  />
                               </td>

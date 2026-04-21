@@ -44,15 +44,15 @@ export default async function DashboardPage() {
     .limit(5)
 
   // 5. Fetch Departments and Users for Task Modal
-  const { data: departments } = await supabase.from('departments').select('department_id, name')
+  const { data: departments } = await supabase.from('departments').select('id, name')
   const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name')
 
   // Format real KPIs for the client
   const now = new Date().toISOString()
   const kpis: KPI[] = [
-    { kpi_id: '1', kpi_name: 'Cumplimiento Protocolos', value: parseFloat(complianceRate.toFixed(1)), unit: '%', date_recorded: now, created_at: now, updated_at: now },
-    { kpi_id: '2', kpi_name: 'Alertas de Calidad', value: alertCount, unit: '', date_recorded: now, created_at: now, updated_at: now },
-    { kpi_id: '3', kpi_name: 'Documentos Totales', value: totalDocs, unit: '', date_recorded: now, created_at: now, updated_at: now },
+    { id: '1', kpi_name: 'Cumplimiento Protocolos', value: parseFloat(complianceRate.toFixed(1)), unit: '%', date_recorded: now, created_at: now, updated_at: now },
+    { id: '2', kpi_name: 'Alertas de Calidad', value: alertCount, unit: '', date_recorded: now, created_at: now, updated_at: now },
+    { id: '3', kpi_name: 'Documentos Totales', value: totalDocs, unit: '', date_recorded: now, created_at: now, updated_at: now },
   ]
 
   // Type-safe map for profiles to match DashboardClient expected props

@@ -14,7 +14,7 @@ export default async function DocumentosPage() {
   // 2. Fetch departments for the upload modal
   const { data: departments } = await supabase
     .from('departments')
-    .select('department_id, name')
+    .select('id, name')
     .order('name', { ascending: true })
 
   // 3. Calculate real stats

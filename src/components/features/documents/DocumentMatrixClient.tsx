@@ -33,7 +33,7 @@ interface Props {
     count: number
     status: DocStatus
   }[]
-  departments: { department_id: string; name: string }[]
+  departments: { id: string; name: string }[]
 }
 
 const statusStyles: Record<string, string> = {
@@ -68,7 +68,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
       const { error } = await supabase
         .from('documents')
         .update({ current_status: 'Aprobado' })
-        .eq('document_id', docId)
+        .eq('id', docId) // Using 'id' instead of 'document_id'
       
       if (error) throw error
       router.refresh()
@@ -82,7 +82,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
 
   const filteredDocuments = initialDocuments.filter(doc => 
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    doc.document_id.toLowerCase().includes(searchTerm.toLowerCase())
+    doc.id.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -105,6 +105,40 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
         })}
       </div>
 
+      {/* Filters bar */}
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap gap-4 items-center">
+        <div className="relative flex-1 min-w-[300px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Buscar por ID o título..." 
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-zinc-900"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none">
+          <option>DEPARTAMENTO</option>
+          {departments.map(d => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+
+        <select className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-zinc-900 font-bold focus:outline-none">
+          <option>ESTADO</option>
+          <option>Aprobado</option>
+          <option>Pendiente</option>
+          <option>Rechazado</option>
+          <option>Vencido</option>
+          <option>No Cumple</option>
+        </select>
+
+        <button className="text-gray-400 hover:text-gray-600 flex items-center gap-2 text-sm font-medium px-4">
+           LIMPIAR
+        </button>
+      </div>
+
       {/* Table Section */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">
@@ -119,21 +153,21 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredDocuments.map((doc) => (
-              <tr key={doc.document_id} className="hover:bg-gray-50 transition-colors group">
+              <tr key={doc.id} className="hover:bg-gray-50 transition-colors group">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2 justify-center">
                     {doc.current_status === 'Pendiente' ? (
                       <>
                         <button 
-                          onClick={() => handleApprove(doc.document_id)}
+                          onClick={() => handleApprove(doc.id)}
                           disabled={!!actionLoading}
                           className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
                           title="Aprobar"
                         >
-                          {actionLoading === doc.document_id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                          {actionLoading === doc.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                         </button>
                         <button 
-                          onClick={() => setRejectModalDoc({id: doc.document_id, title: doc.title})}
+                          onClick={() => setRejectModalDoc({id: doc.id, title: doc.title})}
                           disabled={!!actionLoading}
                           className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
                           title="Rechazar"
@@ -143,7 +177,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
                       </>
                     ) : (
                       <button 
-                        onClick={() => setReplaceModalDoc({id: doc.document_id, title: doc.title, path: doc.storage_path})}
+                        onClick={() => setReplaceModalDoc({id: doc.id, title: doc.title, path: doc.storage_path})}
                         className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
                         title="Reemplazar / Nueva Versión"
                       >
@@ -152,7 +186,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-xs font-bold text-[#0a2d4d]">{doc.document_id.slice(0, 8)}</td>
+                <td className="px-6 py-4 text-xs font-bold text-[#0a2d4d]">{doc.id.slice(0, 8)}</td>
                 <td className="px-6 py-4">
                   <span className="text-xs font-semibold text-gray-700 block max-w-xs truncate">{doc.title}</span>
                   {doc.rejection_comment && doc.current_status === 'Rechazado' && (
@@ -178,7 +212,7 @@ export default function DocumentMatrixClient({ initialDocuments, stats, departme
             ))}
             {filteredDocuments.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm">
+                <td colSpan={5} className="px-6 py-12 text-center text-gray-400 text-sm font-medium">
                   No se encontraron documentos.
                 </td>
               </tr>

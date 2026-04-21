@@ -20,7 +20,7 @@ interface Props {
   deadlines: Deadline[]
   userName: string
   userRole: string
-  departments: { department_id: string; name: string }[]
+  departments: { id: string; name: string }[]
   users: { id: string; first_name: string; last_name: string }[]
 }
 

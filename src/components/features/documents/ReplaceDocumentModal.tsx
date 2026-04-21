@@ -39,7 +39,7 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
       const { data: currentDoc } = await supabase
         .from('documents')
         .select('storage_path')
-        .eq('document_id', documentId)
+        .eq('id', documentId)
         .single()
 
       const { count } = await supabase
@@ -84,7 +84,7 @@ export default function ReplaceDocumentModal({ isOpen, onClose, documentId, docu
           current_status: 'Pendiente', // Resets to pending for new review
           last_modified_at: new Date().toISOString()
         })
-        .eq('document_id', documentId)
+        .eq('id', documentId)
 
       if (dbError) throw dbError
 

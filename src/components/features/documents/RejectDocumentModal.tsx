@@ -38,7 +38,7 @@ export default function RejectDocumentModal({ isOpen, onClose, documentId, docum
           current_status: 'Rechazado',
           rejection_comment: comment 
         })
-        .eq('document_id', documentId)
+        .eq('id', documentId)
 
       if (error) throw error
 
