@@ -14,7 +14,8 @@ import {
   FileUp,
   FileDown,
   X,
-  FileText
+  FileText,
+  CheckCircle2
 } from 'lucide-react'
 import { Task, KPI, Deadline } from '@/app/types/database'
 import CreateTaskModal from './CreateTaskModal'
