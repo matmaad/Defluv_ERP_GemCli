@@ -9,6 +9,9 @@ export async function createTaskWithNotification(taskData: any) {
   
   // Robust Resend initialization
   const apiKey = process.env.RESEND_API_KEY
+  console.log('DEBUG: Iniciando creación de tarea...')
+  console.log('DEBUG: API Key de Resend detectada:', apiKey ? `SÍ (Prefijo: ${apiKey.substring(0, 7)}...)` : 'NO')
+  
   const resend = apiKey ? new Resend(apiKey) : null
   
   try {
@@ -50,6 +53,7 @@ export async function createTaskWithNotification(taskData: any) {
     // 3. Email Notification
     if (resend && task.responsible && task.responsible.email) {
       const { email, first_name, last_name } = task.responsible
+      console.log(`DEBUG: Intentando enviar email de notificación a: ${email}`)
       
       let attachmentLink = ''
       if (task.instruction_file_path) {
@@ -68,8 +72,8 @@ export async function createTaskWithNotification(taskData: any) {
         : 'Sin fecha límite'
 
       try {
-        await resend.emails.send({
-          from: 'DEFLUV ERP <onboarding@resend.dev>', // Using Resend's verified test domain
+        const emailResult = await resend.emails.send({
+          from: 'DEFLUV ERP <onboarding@resend.dev>', 
           to: email,
           subject: `🔔 Nueva Tarea Asignada: ${task.title}`,
           html: `
@@ -96,10 +100,12 @@ export async function createTaskWithNotification(taskData: any) {
             </div>
           `
         })
+        console.log('DEBUG: Resultado de Resend:', emailResult)
       } catch (emailErr: any) {
-        console.error('Email sending failed but task was created:', emailErr)
-        // We don't throw here to avoid failing the whole task creation if only the email fails
+        console.error('DEBUG: Error al enviar email:', emailErr.message)
       }
+    } else {
+      console.log('DEBUG: No se cumplen las condiciones para enviar email (falta responsable, email o configuración)')
     }
 
     return { success: true }
