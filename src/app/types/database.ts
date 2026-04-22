@@ -13,6 +13,7 @@ export interface Profile {
   department_id: string | null;
   is_active: boolean;
   avatar_url?: string;
+  last_seen_at?: string; // New: For Online/Offline status
   created_at: string;
   updated_at: string;
 }

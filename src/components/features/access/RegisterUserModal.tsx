@@ -1,23 +1,27 @@
 'use client'
 
 import React, { useState } from 'react'
-import { X, UserPlus, Loader2, CheckCircle2, Mail, Lock, User } from 'lucide-react'
+import { X, UserPlus, Loader2, CheckCircle2, Mail, Lock, User, Shield, Briefcase } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { registerUserAction } from '@/app/actions/auth-actions'
+import { Department } from '@/app/types/database'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
+  departments: Department[]
 }
 
-export default function RegisterUserModal({ isOpen, onClose }: Props) {
+export default function RegisterUserModal({ isOpen, onClose, departments }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [role, setRole] = useState<'admin' | 'sub_admin' | 'regular_user'>('regular_user')
+  const [deptId, setDeptId] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
@@ -26,6 +30,11 @@ export default function RegisterUserModal({ isOpen, onClose }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!deptId) {
+      alert('Debe seleccionar un departamento obligatorio.')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -35,7 +44,8 @@ export default function RegisterUserModal({ isOpen, onClose }: Props) {
         password,
         first_name: firstName,
         last_name: lastName,
-        role
+        role,
+        department_id: deptId
       })
 
       if (result.error) {
@@ -57,19 +67,19 @@ export default function RegisterUserModal({ isOpen, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 text-[#0a2d4d]">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-[#0a2d4d] text-white flex items-center justify-center shadow-lg shadow-blue-900/20">
                 <UserPlus size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-bold text-[#0a2d4d] uppercase tracking-widest">Registrar Nuevo Usuario</h3>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Acceso Directo al Sistema</p>
+                <h3 className="text-sm font-black uppercase tracking-widest">Nuevo Operador</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Acceso al Sistema ERP</p>
              </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <X size={20} className="text-gray-400" />
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+            <X size={20} />
           </button>
         </div>
 
@@ -78,8 +88,8 @@ export default function RegisterUserModal({ isOpen, onClose }: Props) {
              <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center animate-bounce">
                 <CheckCircle2 size={48} />
              </div>
-             <h4 className="text-xl font-bold text-[#0a2d4d]">¡Usuario Registrado!</h4>
-             <p className="text-sm text-gray-500 px-8">El usuario ya puede iniciar sesión con sus credenciales.</p>
+             <h4 className="text-xl font-black">¡Usuario Registrado!</h4>
+             <p className="text-sm text-gray-500">Los permisos iniciales han sido asignados según su nivel.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-8 space-y-5">
@@ -91,55 +101,74 @@ export default function RegisterUserModal({ isOpen, onClose }: Props) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Nombres</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Nombres</label>
                 <input 
                   type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  placeholder="Ej: Juan"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Apellidos</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Apellidos</label>
                 <input 
                   type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  placeholder="Ej: Perez"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Correo Electrónico</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Correo Electrónico</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input 
                   type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
-                  placeholder="ejemplo@defluv.cl"
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  placeholder="usuario@defluv.cl"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Contraseña Provisoria</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Contraseña Inicial</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input 
-                  type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
-                  placeholder="Mínimo 6 caracteres"
+                  type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  placeholder="••••••••"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-1">Rol de Usuario</label>
-              <select 
-                value={role} onChange={(e) => setRole(e.target.value as any)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
-              >
-                <option value="regular_user">Usuario Regular (TIER 3)</option>
-                <option value="sub_admin">Sub-Admin / Gestor (TIER 2)</option>
-                <option value="admin">Administrador (TIER 1)</option>
-              </select>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento Responsable</label>
+              <div className="relative">
+                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <select 
+                  required value={deptId} onChange={(e) => setDeptId(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black uppercase text-[#0a2d4d]"
+                >
+                  <option value="">Seleccionar Departamento...</option>
+                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Nivel de Acceso (TIER)</label>
+              <div className="relative">
+                <Shield className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <select 
+                  value={role} onChange={(e) => setRole(e.target.value as any)}
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black uppercase text-[#0a2d4d]"
+                >
+                  <option value="regular_user">Usuario Regular (TIER 3)</option>
+                  <option value="sub_admin">Sub-Admin / Gestor (TIER 2)</option>
+                  <option value="admin">Administrador (TIER 1)</option>
+                </select>
+              </div>
             </div>
 
             <button 
