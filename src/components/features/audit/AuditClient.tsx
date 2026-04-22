@@ -61,6 +61,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [deletingAll, setDeletingAll] = useState(false)
   const [showRetentionWarning, setShowRetentionWarning] = useState(false)
   const [daysUntilDeletion, setDaysUntilDeletion] = useState(0)
 
@@ -90,7 +91,6 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
     setSelectedLog(log)
     setMessages([{ role: 'bot', text: `He cargado el registro de auditoría. Es un evento de ${log.action_type}. ¿Tienes dudas sobre este movimiento?`, timestamp: new Date().toLocaleTimeString() }])
     
-    // If it's a document resource, try to fetch its data for the bot
     if (log.resource_type === 'document' || log.resource_type === 'ARCHIVO') {
       const { data } = await supabase.from('documents').select('*').eq('id', log.resource_id).single()
       if (data) setSelectedDocData(data)
@@ -110,7 +110,6 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
     setLoading(true)
 
     try {
-      // Pass the storage path if it's a document log
       const response = await analyzeDocument(
         selectedDocData?.storage_path || null,
         selectedDocData?.title || selectedLog.resource_id,
@@ -130,6 +129,30 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
     }
   }
 
+  const handleDeleteAll = async () => {
+    if (!confirm('Esta acción es irreversible, ¿estás seguro que quieres continuar?')) {
+      return
+    }
+
+    setDeletingAll(true)
+    try {
+      const { error } = await supabase
+        .from('audit_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000') // Trick to delete all
+
+      if (error) throw error
+
+      alert('Todos los registros han sido eliminados correctamente.')
+      router.refresh()
+    } catch (error) {
+      console.error('Error deleting all logs:', error)
+      alert('Error al eliminar los registros. Verifique sus permisos.')
+    } finally {
+      setDeletingAll(false)
+    }
+  }
+
   const filteredLogs = initialLogs.filter(log => {
     if (fechaDesde && new Date(log.timestamp) < new Date(fechaDesde)) return false
     if (fechaHasta && new Date(log.timestamp) > new Date(fechaHasta)) return false
@@ -139,10 +162,10 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
   })
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 h-screen overflow-hidden font-sans text-[#0a2d4d]">
+    <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans text-[#0a2d4d]">
       {/* Retention Policy Warning */}
       {showRetentionWarning && (
-        <div className="bg-orange-50 border-b border-orange-200 px-8 py-3 flex items-center justify-between animate-in slide-in-from-top duration-500">
+        <div className="bg-orange-50 border-b border-orange-200 px-8 py-3 flex items-center justify-between animate-in slide-in-from-top duration-500 rounded-xl mb-4">
            <div className="flex items-center gap-3">
               <AlertTriangle className="text-orange-600" size={20} />
               <p className="text-xs font-bold text-orange-800 uppercase tracking-widest">
@@ -155,7 +178,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
 
       {/* Internal Navigation */}
       {selectedLog && (
-        <div className="px-8 pt-4">
+        <div className="pt-4">
            <button 
             onClick={() => {setSelectedLog(null); setSelectedDocData(null)}} 
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm group"
@@ -167,9 +190,17 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
       )}
 
       {!selectedLog ? (
-        <div className="flex-1 p-8 space-y-6 overflow-y-auto">
+        <div className="space-y-6">
            {/* Top Actions Bar */}
            <div className="flex justify-end gap-3">
+              <button 
+                onClick={handleDeleteAll}
+                disabled={deletingAll}
+                className="flex items-center gap-2 px-6 py-2.5 bg-white border border-red-100 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm disabled:opacity-50"
+              >
+                 {deletingAll ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} 
+                 Eliminar Registro
+              </button>
               <button className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm">
                  <FileDown size={14} className="text-blue-600" /> Informe Mensual
               </button>
@@ -202,9 +233,9 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Tipo de Acción</label>
                  <select value={selectedAction} onChange={(e) => setSelectedAction(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-black text-[#0a2d4d] outline-none">
                     <option value="">Todas las acciones</option>
-                    <option value="Reemplazo">Reemplazo</option>
-                    <option value="Aprobación">Aprobación</option>
-                    <option value="Creación">Creación</option>
+                    <option value="REEMPLAZO">REEMPLAZO</option>
+                    <option value="APROBACIÓN">APROBACIÓN</option>
+                    <option value="CREACIÓN">CREACIÓN</option>
                  </select>
               </div>
               <button className="h-11 bg-gray-50 border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] flex items-center justify-center gap-2 hover:bg-gray-100 transition-all uppercase tracking-widest">
@@ -235,11 +266,11 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                             <td className="px-8 py-5 text-[11px] font-bold text-gray-400 tabular-nums">{formatDateTimeChile(log.timestamp)}</td>
                             <td className="px-8 py-5 text-xs font-black uppercase">{log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA'}</td>
                             <td className="px-8 py-5 text-xs font-black">
-                               <span className={log.action_type === 'Aprobación' || log.action_type === 'Aprobado' ? 'text-green-600' : log.action_type === 'Reemplazo' ? 'text-orange-600' : 'text-blue-600'}>
+                               <span className={log.action_type === 'APROBACIÓN' || log.action_type === 'Aprobado' ? 'text-green-600' : log.action_type === 'REEMPLAZO' ? 'text-orange-600' : 'text-blue-600'}>
                                   {log.action_type.toUpperCase()}
                                </span>
                             </td>
-                            <td className="px-8 py-5 text-xs font-bold text-blue-600 underline group-hover:text-blue-800 truncate">{log.resource_id.slice(0,8)}...</td>
+                            <td className="px-8 py-5 text-xs font-bold text-blue-600 underline group-hover:text-blue-800 truncate">{log.resource_id?.slice(0,8)}...</td>
                             <td className="px-8 py-5">
                                <p className="text-[11px] text-gray-500 leading-relaxed italic line-clamp-2">{log.justification || 'Sin descripción adicional.'}</p>
                             </td>
@@ -255,7 +286,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
         </div>
       ) : (
         /* Split View: Analysis + Bot */
-        <div className="flex-1 flex overflow-hidden border-t border-gray-200">
+        <div className="flex-1 flex overflow-hidden border-t border-gray-100">
            <div className="flex-1 flex flex-col bg-gray-100 relative">
               <div className="bg-white p-4 border-b border-gray-200 flex justify-between items-center px-12">
                  <span className="text-xs font-black text-[#0a2d4d] uppercase tracking-widest">Análisis de Registro</span>
