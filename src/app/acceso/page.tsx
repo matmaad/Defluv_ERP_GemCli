@@ -4,35 +4,45 @@ import AccessControlClient from '@/components/features/access/AccessControlClien
 export default async function AccesoPage() {
   const supabase = await createClient()
 
-  // Fetch current user role
+  // 1. Fetch current user role safely
   const { data: { user: authUser } } = await supabase.auth.getUser()
   let currentUserRole = 'regular_user'
   
   if (authUser) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', authUser.id)
-      .single()
-    if (profile) currentUserRole = profile.role
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authUser.id)
+        .maybeSingle() // Use maybeSingle to avoid crash if profile missing
+      if (profile) currentUserRole = profile.role
+    } catch (e) {
+      console.error('Error fetching current user role:', e)
+    }
   }
 
-  // Fetch profiles
-  const { data: profiles } = await supabase
+  // 2. Fetch profiles safely
+  const { data: profiles, error: pError } = await supabase
     .from('profiles')
     .select('*')
     .order('first_name', { ascending: true })
 
-  // Fetch departments
-  const { data: departments } = await supabase
+  if (pError) console.error('Profiles fetch error:', pError)
+
+  // 3. Fetch departments safely
+  const { data: departments, error: dError } = await supabase
     .from('departments')
     .select('*')
     .order('name', { ascending: true })
 
-  // Fetch permissions
-  const { data: permissions } = await supabase
+  if (dError) console.error('Departments fetch error:', dError)
+
+  // 4. Fetch permissions safely
+  const { data: permissions, error: permError } = await supabase
     .from('permissions')
     .select('*')
+
+  if (permError) console.error('Permissions fetch error:', permError)
 
   return (
     <AccessControlClient 

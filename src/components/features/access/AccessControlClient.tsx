@@ -41,6 +41,17 @@ export default function AccessControlClient({ profiles, departments, permissions
   const supabase = createClient()
   const router = useRouter()
 
+  useEffect(() => {
+    // Synchronize selectedUser if the current one was deleted or updated
+    if (profiles.length > 0) {
+      if (!selectedUser || !profiles.find(p => p.id === selectedUser.id)) {
+        setSelectedUser(profiles[0])
+      }
+    } else {
+      setSelectedUser(null)
+    }
+  }, [profiles])
+
   const handleCheckboxChange = (deptId: string, type: 'can_view' | 'can_edit' | 'can_approve') => {
     if (!selectedUser) return
 

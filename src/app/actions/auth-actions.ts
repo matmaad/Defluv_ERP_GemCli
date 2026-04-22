@@ -78,7 +78,7 @@ export async function registerUserAction(userData: any) {
       })
 
     if (profileError) {
-      return { error: 'Auth created, but profile failed: ' + profileError.message }
+      return { error: 'Auth creado, pero el perfil falló: ' + profileError.message }
     }
 
     await logActionServer(
@@ -93,7 +93,7 @@ export async function registerUserAction(userData: any) {
     
   } catch (err: any) {
     console.error('Admin Registration Error:', err)
-    return { error: 'Error inesperado del servidor' }
+    return { error: 'Error inesperado del servidor al registrar' }
   }
 }
 
@@ -104,13 +104,13 @@ export async function updateUserAction(userId: string, updates: any) {
   )
 
   try {
-    // 1. Update Auth Email if changed (Admin can do this)
+    // 1. Update Auth Email if changed
     if (updates.email) {
       const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         email: updates.email,
         email_confirm: true
       })
-      if (authError) return { error: 'Error al actualizar email en Auth: ' + authError.message }
+      if (authError) return { error: 'Error en Autenticación: ' + authError.message }
     }
 
     // 2. Update Profile Table
@@ -120,24 +120,24 @@ export async function updateUserAction(userId: string, updates: any) {
         first_name: updates.first_name,
         last_name: updates.last_name,
         role: updates.role,
-        email: updates.email // Keep sync
+        email: updates.email
       })
       .eq('id', userId)
 
-    if (profileError) return { error: 'Error al actualizar perfil: ' + profileError.message }
+    if (profileError) return { error: 'Error en Perfil: ' + profileError.message }
 
     await logActionServer(
       'ACTUALIZACIÓN',
       'Perfil',
       userId,
-      `Se actualizó la información del usuario: ${updates.first_name} ${updates.last_name}`,
+      `Actualización de usuario: ${updates.first_name} ${updates.last_name}`,
       updates
     )
 
     return { success: true }
   } catch (err: any) {
     console.error('Update User Error:', err)
-    return { error: 'Error inesperado al actualizar' }
+    return { error: 'Error crítico al actualizar el usuario' }
   }
 }
 
@@ -148,13 +148,7 @@ export async function deleteUserAction(userId: string, userName: string) {
   )
 
   try {
-    // 1. Delete from Auth (Cascade should handle profiles if configured, but let's be explicit)
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
-    if (authError) return { error: 'Error al eliminar usuario en Auth: ' + authError.message }
-
-    // Profiles usually delete via foreign key ON DELETE CASCADE
-    // but just in case, we log it before it's gone
-    
+    // 1. Log the deletion BEFORE removing the user
     await logActionServer(
       'ELIMINACIÓN',
       'Perfil',
@@ -162,9 +156,13 @@ export async function deleteUserAction(userId: string, userName: string) {
       `Se eliminó permanentemente al usuario: ${userName}`
     )
 
+    // 2. Delete from Auth
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    if (authError) return { error: 'Error al eliminar en Autenticación: ' + authError.message }
+
     return { success: true }
   } catch (err: any) {
     console.error('Delete User Error:', err)
-    return { error: 'Error inesperado al eliminar' }
+    return { error: 'Error crítico al eliminar el usuario' }
   }
 }
