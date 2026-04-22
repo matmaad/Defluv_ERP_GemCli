@@ -74,7 +74,7 @@ export default function RegisterUserModal({ isOpen, onClose, departments }: Prop
                 <UserPlus size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-black uppercase tracking-widest">Nuevo Operador</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest text-[#0a2d4d]">NUEVO USUARIO</h3>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Acceso al Sistema ERP</p>
              </div>
           </div>
@@ -143,7 +143,7 @@ export default function RegisterUserModal({ isOpen, onClose, departments }: Prop
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento Responsable</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento Base</label>
               <div className="relative">
                 <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <select 

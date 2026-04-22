@@ -87,11 +87,24 @@ export async function registerUserAction(userData: any) {
 
     if (profileError) return { error: 'Auth creado, pero el perfil falló: ' + profileError.message }
 
-    // 3. AUTO-ASSIGN PERMISSIONS BASED ON TIER
+    // 3. AUTO-ASSIGN PERMISSIONS BASED ON ROLE/TIER
     const userId = authData.user.id
     const deptId = userData.department_id
 
-    if (userData.role === 'sub_admin') {
+    if (userData.role === 'admin') {
+      // TIER 1 (ADMIN): FULL access to ALL departments
+      const { data: depts } = await supabaseAdmin.from('departments').select('id')
+      if (depts) {
+        const perms = depts.map(d => ({
+          user_id: userId,
+          department_id: d.id,
+          can_view: true,
+          can_edit: true,
+          can_approve: true
+        }))
+        await supabaseAdmin.from('permissions').insert(perms)
+      }
+    } else if (userData.role === 'sub_admin') {
       // TIER 2: View access to ALL departments
       const { data: depts } = await supabaseAdmin.from('departments').select('id')
       if (depts) {
@@ -119,7 +132,7 @@ export async function registerUserAction(userData: any) {
       'REGISTRO DE USUARIO',
       'Perfil',
       userId,
-      `Se registró un nuevo operador (${userData.role}): ${userData.first_name} ${userData.last_name}`,
+      `Se registró un nuevo usuario (${userData.role}): ${userData.first_name} ${userData.last_name}`,
       { role: userData.role, dept: deptId }
     )
 
@@ -127,7 +140,7 @@ export async function registerUserAction(userData: any) {
     
   } catch (err: any) {
     console.error('Admin Registration Error:', err)
-    return { error: 'Error inesperado del servidor al registrar' }
+    return { error: err.message || 'Error inesperado del servidor al registrar' }
   }
 }
 
@@ -172,7 +185,7 @@ export async function updateUserAction(userId: string, updates: any) {
     return { success: true }
   } catch (err: any) {
     console.error('Update User Error:', err)
-    return { error: 'Error crítico al actualizar el usuario' }
+    return { error: err.message || 'Error crítico al actualizar el usuario' }
   }
 }
 
@@ -189,6 +202,6 @@ export async function deleteUserAction(userId: string, userName: string) {
     return { success: true }
   } catch (err: any) {
     console.error('Delete User Error:', err)
-    return { error: 'Error crítico al eliminar el usuario' }
+    return { error: err.message || 'Error crítico al eliminar el usuario' }
   }
 }
