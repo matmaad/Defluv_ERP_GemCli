@@ -13,7 +13,8 @@ import {
   Edit3,
   FileUp,
   FileDown,
-  X
+  X,
+  FileText
 } from 'lucide-react'
 import { Task, KPI, Deadline } from '@/app/types/database'
 import CreateTaskModal from './CreateTaskModal'
