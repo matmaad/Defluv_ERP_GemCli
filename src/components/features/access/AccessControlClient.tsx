@@ -9,13 +9,17 @@ import {
   Loader2,
   AlertCircle,
   ChevronRight,
-  UserPlus
+  UserPlus,
+  Trash2,
+  Edit3
 } from 'lucide-react'
 import { Profile, Department, Permission } from '@/app/types/database'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 import RegisterUserModal from './RegisterUserModal'
+import EditUserModal from './EditUserModal'
 import { logAction } from '@/utils/audit-helper'
+import { deleteUserAction } from '@/app/actions/auth-actions'
 
 interface Props {
   profiles: Profile[]
@@ -28,8 +32,11 @@ export default function AccessControlClient({ profiles, departments, permissions
   const [selectedUser, setSelectedUser] = useState(profiles[0] || null)
   const [localPermissions, setLocalPermissions] = useState<Permission[]>(initialPermissions)
   const [loading, setLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [changed, setChanged] = useState(false)
+  
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
+  const [editModalUser, setEditModalUser] = useState<Profile | null>(null)
   
   const supabase = createClient()
   const router = useRouter()
@@ -92,44 +99,90 @@ export default function AccessControlClient({ profiles, departments, permissions
     }
   }
 
+  const handleDeleteUser = async (userId: string, name: string) => {
+    if (userId === (await supabase.auth.getUser()).data.user?.id) {
+      alert('No puedes eliminarte a ti mismo.')
+      return
+    }
+
+    if (!confirm(`¿Está seguro de que desea eliminar permanentemente a ${name}? Esta acción eliminará su acceso y perfil.`)) {
+      return
+    }
+
+    setDeletingId(userId)
+    try {
+      const result = await deleteUserAction(userId, name)
+      if (result.error) throw new Error(result.error)
+
+      alert('Usuario eliminado correctamente.')
+      router.refresh()
+    } catch (error: any) {
+      alert('Error al eliminar: ' + error.message)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const getUserPerm = (deptId: string) => {
     return localPermissions.find(p => p.user_id === selectedUser?.id && p.department_id === deptId)
   }
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-[#0a2d4d]">
         {/* User Selection */}
         <div className="lg:col-span-3 space-y-6">
            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-gray-50 flex items-center gap-3">
                  <Users className="text-gray-400" size={18} />
-                 <h3 className="text-[10px] font-black uppercase tracking-widest text-[#0a2d4d]">Usuarios del Sistema</h3>
+                 <h3 className="text-[10px] font-black uppercase tracking-widest">Usuarios del Sistema</h3>
               </div>
               <div className="p-4 space-y-2">
                  {profiles.map((p) => (
-                   <button 
-                    key={p.id}
-                    onClick={() => {
-                      if (changed) {
-                        if (!confirm('Tiene cambios sin guardar. ¿Desea cambiar de usuario?')) return
-                        setChanged(false)
-                      }
-                      setSelectedUser(p)
-                    }}
-                    className={`w-full p-4 rounded-xl flex items-center justify-between transition-all border-2 ${selectedUser?.id === p.id ? 'bg-blue-50 border-[#0a2d4d] shadow-sm' : 'bg-white border-transparent hover:bg-gray-50'}`}
-                   >
-                      <div className="flex items-center gap-3 text-left">
-                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs ${selectedUser?.id === p.id ? 'bg-[#0a2d4d] text-white' : 'bg-gray-100 text-gray-400'}`}>
-                            {p.first_name[0]}{p.last_name[0]}
-                         </div>
-                         <div>
-                            <p className="text-xs font-black uppercase">{p.first_name} {p.last_name}</p>
-                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{p.role}</p>
-                         </div>
-                      </div>
-                      {selectedUser?.id === p.id && <Check size={12} className="text-[#0a2d4d]" />}
-                   </button>
+                   <div key={p.id} className="relative group">
+                     <button 
+                      onClick={() => {
+                        if (changed) {
+                          if (!confirm('Tiene cambios sin guardar. ¿Desea cambiar de usuario?')) return
+                          setChanged(false)
+                        }
+                        setSelectedUser(p)
+                      }}
+                      className={`w-full p-4 pr-16 rounded-xl flex items-center justify-between transition-all border-2 ${selectedUser?.id === p.id ? 'bg-blue-50 border-[#0a2d4d] shadow-sm' : 'bg-white border-transparent hover:bg-gray-50'}`}
+                     >
+                        <div className="flex items-center gap-3 text-left">
+                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs ${selectedUser?.id === p.id ? 'bg-[#0a2d4d] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                              {p.first_name[0]}{p.last_name[0]}
+                           </div>
+                           <div className="overflow-hidden">
+                              <p className="text-xs font-black uppercase truncate">{p.first_name} {p.last_name}</p>
+                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter truncate">{p.role}</p>
+                           </div>
+                        </div>
+                        {selectedUser?.id === p.id && <Check size={12} className="text-[#0a2d4d]" />}
+                     </button>
+
+                     {/* Action Buttons for Admins */}
+                     {currentUserRole === 'admin' && (
+                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => setEditModalUser(p)}
+                            className="p-1 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+                            title="Editar Usuario"
+                          >
+                             <Edit3 size={14} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteUser(p.id, `${p.first_name} ${p.last_name}`)}
+                            disabled={deletingId === p.id}
+                            className="p-1 text-red-600 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50"
+                            title="Eliminar Usuario"
+                          >
+                             {deletingId === p.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                          </button>
+                       </div>
+                     )}
+                   </div>
                  ))}
               </div>
            </div>
@@ -236,6 +289,12 @@ export default function AccessControlClient({ profiles, departments, permissions
       <RegisterUserModal 
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
+      />
+
+      <EditUserModal 
+        isOpen={!!editModalUser}
+        onClose={() => setEditModalUser(null)}
+        user={editModalUser}
       />
     </div>
   )

@@ -96,3 +96,75 @@ export async function registerUserAction(userData: any) {
     return { error: 'Error inesperado del servidor' }
   }
 }
+
+export async function updateUserAction(userId: string, updates: any) {
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  try {
+    // 1. Update Auth Email if changed (Admin can do this)
+    if (updates.email) {
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        email: updates.email,
+        email_confirm: true
+      })
+      if (authError) return { error: 'Error al actualizar email en Auth: ' + authError.message }
+    }
+
+    // 2. Update Profile Table
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        first_name: updates.first_name,
+        last_name: updates.last_name,
+        role: updates.role,
+        email: updates.email // Keep sync
+      })
+      .eq('id', userId)
+
+    if (profileError) return { error: 'Error al actualizar perfil: ' + profileError.message }
+
+    await logActionServer(
+      'ACTUALIZACIÓN',
+      'Perfil',
+      userId,
+      `Se actualizó la información del usuario: ${updates.first_name} ${updates.last_name}`,
+      updates
+    )
+
+    return { success: true }
+  } catch (err: any) {
+    console.error('Update User Error:', err)
+    return { error: 'Error inesperado al actualizar' }
+  }
+}
+
+export async function deleteUserAction(userId: string, userName: string) {
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  try {
+    // 1. Delete from Auth (Cascade should handle profiles if configured, but let's be explicit)
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    if (authError) return { error: 'Error al eliminar usuario en Auth: ' + authError.message }
+
+    // Profiles usually delete via foreign key ON DELETE CASCADE
+    // but just in case, we log it before it's gone
+    
+    await logActionServer(
+      'ELIMINACIÓN',
+      'Perfil',
+      userId,
+      `Se eliminó permanentemente al usuario: ${userName}`
+    )
+
+    return { success: true }
+  } catch (err: any) {
+    console.error('Delete User Error:', err)
+    return { error: 'Error inesperado al eliminar' }
+  }
+}

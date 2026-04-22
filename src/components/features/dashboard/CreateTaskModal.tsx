@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { X, ClipboardList, Loader2, CheckCircle2, FileUp } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
-import { logAction } from '@/utils/audit-helper'
+import { createTaskWithNotification } from '@/app/actions/task-actions'
 
 interface Props {
   isOpen: boolean
@@ -39,9 +39,6 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
     setLoading(true)
     
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Auth error')
-
       let filePath = null
       if (file) {
         const fileExt = file.name.split('.').pop()
@@ -55,32 +52,18 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
         if (uploadError) throw uploadError
       }
 
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert({
-          title,
-          description: desc,
-          assigned_to_user_id: assignedTo || null,
-          requester_id: user.id,
-          department_id: deptId || null,
-          due_date: dueDate || null,
-          priority,
-          requires_document: requiresDoc,
-          instruction_file_path: filePath,
-          status: 'Pendiente'
-        })
-        .select()
-        .single()
+      const result = await createTaskWithNotification({
+        title,
+        description: desc,
+        assigned_to_user_id: assignedTo || null,
+        department_id: deptId || null,
+        due_date: dueDate || null,
+        priority,
+        requires_document: requiresDoc,
+        instruction_file_path: filePath
+      })
 
-      if (error) throw error
-
-      await logAction(
-        'CREACIÓN',
-        'Tareas',
-        data.id,
-        { title, assignedTo, priority, requiresDoc },
-        `Se creó la tarea con flujo de documentos: ${title}`
-      )
+      if (result.error) throw new Error(result.error)
 
       setSuccess(true)
       setTimeout(() => {
@@ -121,7 +104,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
                 <CheckCircle2 size={48} />
              </div>
              <h4 className="text-xl font-black text-[#0a2d4d]">¡Tarea Asignada!</h4>
-             <p className="text-sm text-gray-500">El usuario podrá ver la plantilla y subir su respuesta.</p>
+             <p className="text-sm text-gray-500">El usuario recibirá una notificación por correo.</p>
           </div>
         ) : (
           <form onSubmit={handleCreate} className="p-8 space-y-5">

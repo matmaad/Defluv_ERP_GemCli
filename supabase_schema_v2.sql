@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     due_date TIMESTAMPTZ, -- Optional deadline
     status TEXT DEFAULT 'Pendiente' CHECK (status IN ('Pendiente', 'Aprobado', 'Rechazado', 'Vencido', 'No Cumple')),
     priority TEXT DEFAULT 'Estándar' CHECK (priority IN ('Baja', 'Estándar', 'Urgente', 'Crítico')),
+    requires_document BOOLEAN DEFAULT FALSE,
     instruction_file_path TEXT,
     resolution_file_path TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
