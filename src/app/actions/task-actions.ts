@@ -4,10 +4,9 @@ import { createClient } from '@/utils/supabase/server'
 import { logActionServer } from '@/utils/audit-server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function createTaskWithNotification(taskData: any) {
   const supabase = await createClient()
+  const resend = new Resend(process.env.RESEND_API_KEY)
   
   try {
     const { data: { user: requester } } = await supabase.auth.getUser()
