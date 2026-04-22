@@ -6,14 +6,23 @@ import {
   FileCheck, 
   AlertTriangle, 
   Plus,
-  Filter
+  Filter,
+  Eye,
+  Download,
+  Loader2
 } from 'lucide-react'
 import { Task, KPI, Deadline } from '@/app/types/database'
 import CreateTaskModal from './CreateTaskModal'
+import { createClient } from '@/utils/supabase/cliente'
+
+interface TaskWithDetails extends Task {
+  department?: { name: string }
+  responsible?: { first_name: string; last_name: string }
+}
 
 interface Props {
   allDocs: { current_status: string; department_id: string }[]
-  tasks: Task[]
+  tasks: TaskWithDetails[]
   deadlines: Deadline[]
   userName: string
   userRole: string
@@ -40,6 +49,9 @@ const formatDateChile = (dateString: string | null | undefined) => {
 export default function DashboardClient({ allDocs, tasks, deadlines, userName, userRole, departments, users }: Props) {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
   const [selectedDept, setSelectedDept] = useState('')
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+
+  const supabase = createClient()
 
   // Calculate KPIs dynamically based on filter
   const kpis = useMemo(() => {
@@ -58,6 +70,44 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
       { id: '3', kpi_name: 'Documentos Totales', value: totalDocs, unit: '' },
     ]
   }, [allDocs, selectedDept])
+
+  const handleDownload = async (path: string, fileName: string, taskId: string) => {
+    setDownloadingId(taskId)
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(path)
+
+      if (error) throw error
+
+      const url = window.URL.createObjectURL(data)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', fileName || 'adjunto-tarea.pdf')
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+    } catch (error) {
+      console.error('Download error:', error)
+      alert('Error al descargar el archivo.')
+    } finally {
+      setDownloadingId(null)
+    }
+  }
+
+  const handlePreview = async (path: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(path, 60)
+
+      if (error) throw error
+      window.open(data.signedUrl, '_blank')
+    } catch (error) {
+      console.error('Preview error:', error)
+      alert('Error al abrir la vista previa.')
+    }
+  }
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto text-[#0a2d4d]">
@@ -156,40 +206,76 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
          </div>
 
          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full text-left border-collapse">
-               <thead>
-                  <tr className="bg-gray-50/50 border-b border-gray-100">
-                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarea</th>
-                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Plazo</th>
-                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Prioridad</th>
-                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Acciones</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-gray-50">
-                  {tasks.map((t, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors group text-[#0a2d4d]">
-                       <td className="px-8 py-6">
-                          <p className="text-xs font-bold uppercase">{t.title}</p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">{t.description || 'Sin descripción'}</p>
-                       </td>
-                       <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums text-center">{formatDateChile(t.due_date)}</td>
-                       <td className="px-8 py-6 text-center">
-                          <span className={`px-3 py-1 rounded-full text-[8px] font-black text-white tracking-widest bg-blue-600`}>
-                             {t.priority.toUpperCase()}
-                          </span>
-                       </td>
-                       <td className="px-8 py-6 text-right">
-                          <button className="px-5 py-2 border border-gray-200 rounded-xl text-[10px] font-bold hover:bg-white hover:shadow-md transition-all uppercase tracking-widest">Detalles</button>
-                       </td>
-                    </tr>
-                  ))}
-                  {tasks.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="px-8 py-12 text-center text-gray-400 text-sm font-black uppercase tracking-widest">Sin tareas activas</td>
-                    </tr>
-                  )}
-               </tbody>
-            </table>
+            <div className="overflow-x-auto">
+               <table className="w-full text-left border-collapse min-w-[1000px]">
+                  <thead>
+                     <tr className="bg-gray-50/50 border-b border-gray-100">
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarea</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Departamento</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Responsable</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Plazo</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Prioridad</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Opciones</th>
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                     {tasks.map((t, idx) => (
+                       <tr key={idx} className="hover:bg-gray-50 transition-colors group text-[#0a2d4d]">
+                          <td className="px-8 py-6">
+                             <p className="text-xs font-bold uppercase">{t.title}</p>
+                          </td>
+                          <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">
+                             {t.department?.name || 'S/D'}
+                          </td>
+                          <td className="px-8 py-6 text-[10px] font-black uppercase text-gray-500">
+                             {t.responsible ? `${t.responsible.first_name} ${t.responsible.last_name}` : 'SIN ASIGNAR'}
+                          </td>
+                          <td className="px-8 py-6 max-w-[200px]">
+                             <p className="text-[10px] text-gray-400 font-bold uppercase truncate" title={t.description}>{t.description || 'Sin descripción'}</p>
+                          </td>
+                          <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums text-center">{formatDateChile(t.due_date)}</td>
+                          <td className="px-8 py-6 text-center">
+                             <span className={`px-3 py-1 rounded-full text-[8px] font-black text-white tracking-widest bg-blue-600`}>
+                                {t.priority.toUpperCase()}
+                             </span>
+                          </td>
+                          <td className="px-8 py-6 text-right">
+                             <div className="flex justify-end gap-2 text-gray-300">
+                                {t.instruction_file_path && (
+                                   <>
+                                      <button 
+                                         onClick={() => handlePreview(t.instruction_file_path!)}
+                                         className="p-1 hover:text-blue-600 transition-colors"
+                                         title="Ver Adjunto"
+                                      >
+                                         <Eye size={18} />
+                                      </button>
+                                      <button 
+                                         onClick={() => handleDownload(t.instruction_file_path!, `Adjunto_Tarea_${t.id.slice(0,5)}.pdf`, t.id)}
+                                         disabled={downloadingId === t.id}
+                                         className="p-1 hover:text-green-600 transition-colors disabled:opacity-50"
+                                         title="Descargar Adjunto"
+                                      >
+                                         {downloadingId === t.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                                      </button>
+                                   </>
+                                )}
+                                <button className="px-4 py-1.5 border border-gray-200 rounded-lg text-[9px] font-black text-[#0a2d4d] hover:bg-white hover:shadow-md transition-all uppercase tracking-widest">
+                                   Detalles
+                                </button>
+                             </div>
+                          </td>
+                       </tr>
+                     ))}
+                     {tasks.length === 0 && (
+                       <tr>
+                         <td colSpan={7} className="px-8 py-12 text-center text-gray-400 text-sm font-black uppercase tracking-widest">Sin tareas activas</td>
+                       </tr>
+                     )}
+                  </tbody>
+               </table>
+            </div>
          </div>
       </div>
 

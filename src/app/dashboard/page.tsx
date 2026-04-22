@@ -21,12 +21,16 @@ export default async function DashboardPage() {
     .from('documents')
     .select('current_status, department_id')
 
-  // 2. Fetch real Tasks
+  // 2. Fetch real Tasks with relations
   const { data: tasks } = await supabase
     .from('tasks')
-    .select('*')
+    .select(`
+      *,
+      department:departments (name),
+      responsible:profiles!assigned_to_user_id (first_name, last_name)
+    `)
     .order('due_date', { ascending: true })
-    .limit(5)
+    .limit(10)
 
   // 3. Fetch real Deadlines
   const { data: deadlines } = await supabase
@@ -50,7 +54,7 @@ export default async function DashboardPage() {
   return (
     <DashboardClient 
       allDocs={allDocs || []}
-      tasks={tasks || []} 
+      tasks={(tasks as any) || []} 
       deadlines={deadlines || []}
       userName={profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario'}
       userRole={profile?.role || 'regular_user'}
