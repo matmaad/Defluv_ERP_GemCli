@@ -10,47 +10,44 @@ export default async function DashboardPage() {
   if (user) {
     const { data } = await supabase
       .from('profiles')
-      .select('first_name, last_name, role')
+      .select('first_name, last_name, role, department_id')
       .eq('id', user.id)
       .single()
     profile = data
   }
 
-  // 1. Fetch raw documents for dynamic KPI calculation on client
-  const { data: allDocs } = await supabase
-    .from('documents')
-    .select('current_status, department_id')
+  // PRIVACY ENFORCEMENT: Filter based on user permissions
+  // If Regular User, filter by their department. If Admin/Sub-Admin, show more.
+  const isRegularUser = profile?.role === 'regular_user'
+  
+  let docsQuery = supabase.from('documents').select('current_status, department_id')
+  if (isRegularUser && profile?.department_id) {
+    docsQuery = docsQuery.eq('department_id', profile.department_id)
+  }
+  const { data: allDocs } = await docsQuery
 
-  // 2. Fetch real Tasks with relations
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select(`
-      *,
-      department:departments (name),
-      responsible:profiles!assigned_to_user_id (first_name, last_name)
-    `)
-    .order('due_date', { ascending: true })
-    .limit(10)
+  // Fetch real Tasks with relations (Filtered if regular user)
+  let tasksQuery = supabase.from('tasks').select(`
+    *,
+    department:departments (name),
+    responsible:profiles!assigned_to_user_id (first_name, last_name)
+  `)
+  if (isRegularUser) {
+    tasksQuery = tasksQuery.eq('assigned_to_user_id', user?.id)
+  }
+  const { data: tasks } = await tasksQuery.order('due_date', { ascending: true }).limit(10)
 
-  // 3. Fetch Pending Document Deadlines (The "Smart Deadlines")
-  // Documents with due_date in future but NO storage_path (no file uploaded yet)
+  // Fetch Pending Document Deadlines (Filtered if regular user)
   const now = new Date().toISOString()
-  const { data: pendingDocs } = await supabase
-    .from('documents')
-    .select(`
-      id,
-      title,
-      due_date,
-      document_type,
-      department:departments (name)
-    `)
-    .not('due_date', 'is', null)
-    .is('storage_path', null) // No file yet
-    .gte('due_date', now)     // Not yet expired
-    .order('due_date', { ascending: true })
-    .limit(10)
+  let pendingQuery = supabase.from('documents').select(`
+    id, title, due_date, document_type, department:departments (name)
+  `).not('due_date', 'is', null).is('storage_path', null).gte('due_date', now)
+  
+  if (isRegularUser && profile?.department_id) {
+    pendingQuery = pendingQuery.eq('department_id', profile.department_id)
+  }
+  const { data: pendingDocs } = await pendingQuery.order('due_date', { ascending: true }).limit(10)
 
-  // Transform pendingDocs to match the visual expectation of "deadlines"
   const deadlines = pendingDocs?.map(doc => ({
     id: doc.id,
     name: doc.title,
@@ -58,16 +55,9 @@ export default async function DashboardPage() {
     due_date: doc.due_date
   })) || []
 
-  // 4. Fetch Departments and Users for Task Modal and Filtering
+  // Metadata for modals
   const { data: departments } = await supabase.from('departments').select('id, name').order('name', { ascending: true })
   const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name, department_id')
-
-  const formattedProfiles = profiles?.map(p => ({
-    id: p.id,
-    first_name: p.first_name,
-    last_name: p.last_name,
-    department_id: p.department_id
-  })) || []
 
   return (
     <DashboardClient 
@@ -78,7 +68,7 @@ export default async function DashboardPage() {
       userRole={profile?.role || 'regular_user'}
       userId={user?.id || ''}
       departments={departments || []}
-      users={formattedProfiles}
+      users={(profiles as any) || []}
     />
   )
 }

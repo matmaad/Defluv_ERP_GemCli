@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
+import PresenceTracker from '@/components/layout/PresenceTracker'
 import { createClient } from '@/utils/supabase/server'
 import './globals.css'
 
@@ -33,12 +34,10 @@ export default async function RootLayout({
     profile = data
   }
 
-  // If there's no user, we don't show the Sidebar/Header (only for Login page)
-  const isLoginPage = false // Middleware handles the actual redirect, but we need to check the path here
-
   return (
     <html lang="es">
       <body className={`${inter.className} flex bg-gray-50 h-screen overflow-hidden`}>
+        {user && <PresenceTracker />}
         {user ? (
           <>
             <Sidebar />
