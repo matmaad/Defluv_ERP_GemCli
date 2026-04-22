@@ -48,6 +48,7 @@
     - [x] Chat interactivo en tiempo real con el documento abierto.
 - [x] **Trazabilidad Total**
     - [x] Trigger automático: Cada acción (subida, cambio de estado) debe generar un log en `audit_logs`.
+- [ ] **Automatización de Borrado de Auditoría (SQL Cron Job cada 05/01)**
 
 ## 🎨 Fase 6: Pulido y Despliegue Final (Completado)
 - [x] **UI/UX Polishing**

@@ -15,7 +15,8 @@ import {
   FileDown,
   X,
   FileText,
-  CheckCircle2
+  CheckCircle2,
+  Clock
 } from 'lucide-react'
 import { Task, KPI, Deadline } from '@/app/types/database'
 import CreateTaskModal from './CreateTaskModal'
@@ -32,7 +33,7 @@ interface TaskWithDetails extends Task {
 interface Props {
   allDocs: { current_status: string; department_id: string }[]
   tasks: TaskWithDetails[]
-  deadlines: Deadline[]
+  deadlines: any[] // Dynamic documents as deadlines
   userName: string
   userRole: string
   userId: string
@@ -133,8 +134,11 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-60">Operaciones DEFLUV SA</p>
                 <h2 className="text-4xl font-black leading-tight tracking-tighter">OPTIMIZACIÓN DE PROCESOS</h2>
                 <div className="flex gap-4 pt-2">
-                   <button className="px-6 py-2.5 bg-white text-[#0a2d4d] rounded-lg text-[10px] font-bold hover:bg-gray-100 transition-colors uppercase tracking-widest shadow-lg">
-                     Revisar Protocolos
+                   <button 
+                    onClick={() => router.push('/documentos')}
+                    className="px-6 py-2.5 bg-white text-[#0a2d4d] rounded-lg text-[10px] font-bold hover:bg-gray-100 transition-colors uppercase tracking-widest shadow-lg"
+                   >
+                     Revisar Matriz
                    </button>
                 </div>
              </div>
@@ -178,19 +182,22 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
 
         {/* Sidebar (Deadlines) */}
         <div className="space-y-8">
-           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 space-y-6 flex flex-col h-full">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-100 pb-4">Próximos Vencimientos</h3>
+           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 space-y-6 flex flex-col h-full border-t-4 border-t-orange-500">
+              <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Cargas Pendientes</h3>
+                 <Clock size={16} className="text-orange-500" />
+              </div>
               <div className="space-y-4 flex-1">
                  {deadlines.map((d, idx) => (
-                   <div key={idx} className="flex gap-4 group cursor-pointer">
-                      <div className={`w-1 rounded-full bg-blue-600 group-hover:w-1.5 transition-all`}></div>
+                   <div key={idx} className="flex gap-4 group cursor-pointer" onClick={() => router.push('/documentos')}>
+                      <div className={`w-1 rounded-full bg-orange-400 group-hover:w-1.5 transition-all`}></div>
                       <div className="flex-1 bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-gray-100">
-                         <div>
-                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{d.type}</p>
-                            <p className="text-xs font-bold uppercase">{d.name}</p>
+                         <div className="overflow-hidden mr-2">
+                            <p className="text-[8px] font-black text-orange-600 uppercase tracking-widest truncate">{d.type}</p>
+                            <p className="text-xs font-bold uppercase truncate" title={d.name}>{d.name}</p>
                          </div>
-                         <div className="text-right">
-                            <span className={`px-2 py-1 rounded-md text-[8px] font-black text-white uppercase bg-blue-600`}>
+                         <div className="text-right flex-shrink-0">
+                            <span className={`px-2 py-1 rounded-md text-[8px] font-black text-white uppercase bg-orange-500`}>
                                {formatDateChile(d.due_date)}
                             </span>
                          </div>
@@ -198,9 +205,13 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                    </div>
                  ))}
                  {deadlines.length === 0 && (
-                   <p className="text-center text-gray-400 text-xs py-8 font-bold uppercase tracking-widest">Sin vencimientos</p>
+                   <div className="py-12 text-center space-y-3">
+                      <ShieldCheck size={32} className="mx-auto text-green-200" />
+                      <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest px-4">No hay cargas de documentos pendientes a corto plazo.</p>
+                   </div>
                  )}
               </div>
+              <p className="text-[8px] font-bold text-gray-400 uppercase text-center pt-4 italic">Mostrando los próximos 10 requerimientos</p>
            </div>
         </div>
       </div>
@@ -303,71 +314,47 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
          </div>
       </div>
 
-      {/* Download Choice Menu (Modal overlay) */}
+      {/* Download Choice Menu */}
       {downloadMenuTask && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm">
-           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-8 space-y-6 text-[#0a2d4d]">
+           <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden p-8 space-y-6 text-[#0a2d4d]">
               <div className="flex justify-between items-center">
-                 <h4 className="text-xs font-black uppercase tracking-widest">Descargar Documentación</h4>
+                 <h4 className="text-xs font-black uppercase tracking-widest">Documentación</h4>
                  <button onClick={() => setDownloadMenuTask(null)}><X size={20} className="text-gray-400" /></button>
               </div>
               <div className="space-y-3">
                  {downloadMenuTask.instruction_file_path && (
                     <button 
                        onClick={() => handleDownload(downloadMenuTask.instruction_file_path!, 'Plantilla_Llenado.pdf', downloadMenuTask.id)}
-                       className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-blue-50 hover:border-blue-200 transition-all group"
+                       className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between hover:bg-blue-50 transition-all group"
                     >
                        <div className="flex items-center gap-3">
                           <FileText className="text-blue-600" size={20} />
-                          <span className="text-[10px] font-black uppercase">Plantilla de Llenado</span>
+                          <span className="text-[10px] font-black uppercase">Plantilla</span>
                        </div>
                        <Download size={14} className="text-gray-300 group-hover:text-blue-600" />
                     </button>
                  )}
                  {downloadMenuTask.resolution_file_path && (
                     <button 
-                       onClick={() => handleDownload(downloadMenuTask.resolution_file_path!, 'Respuesta_Completada.pdf', downloadMenuTask.id)}
-                       className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-green-50 hover:border-green-200 transition-all group"
+                       onClick={() => handleDownload(downloadMenuTask.resolution_file_path!, 'Respuesta.pdf', downloadMenuTask.id)}
+                       className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between hover:bg-green-50 transition-all group"
                     >
                        <div className="flex items-center gap-3">
                           <CheckCircle2 className="text-green-600" size={20} />
-                          <span className="text-[10px] font-black uppercase">Documento Completado</span>
+                          <span className="text-[10px] font-black uppercase">Resultado</span>
                        </div>
                        <Download size={14} className="text-gray-300 group-hover:text-green-600" />
                     </button>
                  )}
               </div>
-              <button 
-                 onClick={() => setDownloadMenuTask(null)}
-                 className="w-full py-3 text-[10px] font-black uppercase text-gray-400 hover:text-gray-600"
-              >
-                 Cancelar
-              </button>
            </div>
         </div>
       )}
 
-      <CreateTaskModal 
-        isOpen={isCreateTaskOpen}
-        onClose={() => setIsCreateTaskOpen(false)}
-        departments={departments}
-        users={users}
-      />
-
-      <EditTaskModal 
-        isOpen={!!editModalTask}
-        onClose={() => setEditModalTask(null)}
-        departments={departments}
-        users={users}
-        task={editModalTask}
-      />
-
-      <UploadResolutionModal 
-        isOpen={!!uploadResTask}
-        onClose={() => setUploadResTask(null)}
-        taskId={uploadResTask?.id || ''}
-        taskTitle={uploadResTask?.title || ''}
-      />
+      <CreateTaskModal isOpen={isCreateTaskOpen} onClose={() => setIsCreateTaskOpen(false)} departments={departments} users={users} />
+      <EditTaskModal isOpen={!!editModalTask} onClose={() => setEditModalTask(null)} departments={departments} users={users} task={editModalTask} />
+      <UploadResolutionModal isOpen={!!uploadResTask} onClose={() => setUploadResTask(null)} taskId={uploadResTask?.id || ''} taskTitle={uploadResTask?.title || ''} />
     </div>
   )
 }
