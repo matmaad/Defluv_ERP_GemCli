@@ -9,11 +9,14 @@ import {
   Filter,
   Eye,
   Download,
-  Loader2
+  Loader2,
+  Edit3
 } from 'lucide-react'
 import { Task, KPI, Deadline } from '@/app/types/database'
 import CreateTaskModal from './CreateTaskModal'
+import EditTaskModal from './EditTaskModal'
 import { createClient } from '@/utils/supabase/cliente'
+import { useRouter } from 'next/navigation'
 
 interface TaskWithDetails extends Task {
   department?: { name: string }
@@ -48,10 +51,12 @@ const formatDateChile = (dateString: string | null | undefined) => {
 
 export default function DashboardClient({ allDocs, tasks, deadlines, userName, userRole, departments, users }: Props) {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
+  const [editModalTask, setEditModalTask] = useState<TaskWithDetails | null>(null)
   const [selectedDept, setSelectedDept] = useState('')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
   const supabase = createClient()
+  const router = useRouter()
 
   // Calculate KPIs dynamically based on filter
   const kpis = useMemo(() => {
@@ -261,6 +266,17 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                                       </button>
                                    </>
                                 )}
+
+                                {userRole === 'admin' && (
+                                  <button 
+                                    onClick={() => setEditModalTask(t)}
+                                    className="p-1 hover:text-blue-600 transition-colors"
+                                    title="Editar Tarea"
+                                  >
+                                    <Edit3 size={18} />
+                                  </button>
+                                )}
+
                                 <button className="px-4 py-1.5 border border-gray-200 rounded-lg text-[9px] font-black text-[#0a2d4d] hover:bg-white hover:shadow-md transition-all uppercase tracking-widest">
                                    Detalles
                                 </button>
@@ -284,6 +300,14 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
         onClose={() => setIsCreateTaskOpen(false)}
         departments={departments}
         users={users}
+      />
+
+      <EditTaskModal 
+        isOpen={!!editModalTask}
+        onClose={() => setEditModalTask(null)}
+        departments={departments}
+        users={users}
+        task={editModalTask}
       />
     </div>
   )
