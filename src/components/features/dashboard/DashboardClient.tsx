@@ -76,7 +76,7 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
     const totalDocs = filteredDocs.length
     const approvedDocs = filteredDocs.filter(d => d.current_status === 'Aprobado').length
     const complianceRate = totalDocs > 0 ? (approvedDocs / totalDocs) * 100 : 0
-    const alertCount = filteredDocs.filter(d => d.current_status === 'Rechazado' || d.current_status === 'No Cumple').length
+    const alertCount = filteredDocs.filter(d => d.current_status === 'Rechazado' || d.current_status === 'No Cumple' || d.current_status === 'Vencido').length
 
     return [
       { id: '1', kpi_name: 'Cumplimiento Protocolos', value: parseFloat(complianceRate.toFixed(1)), unit: '%' },

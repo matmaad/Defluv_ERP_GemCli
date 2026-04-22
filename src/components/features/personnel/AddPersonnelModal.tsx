@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
-import { X, UserPlus, Loader2, CheckCircle2, FileSpreadsheet, Calendar } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { X, UserPlus, Loader2, CheckCircle2, FileSpreadsheet, Calendar, Download } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import Papa from 'papaparse'
 import { logAction } from '@/utils/audit-helper'
 
 interface Props {
@@ -17,6 +18,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [mode, setMode] = useState<'single' | 'bulk'>('single')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Single Entry State
   const [rut, setRut] = useState('')
@@ -24,7 +26,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
   const [lastName, setLast] = useState('')
   const [cargo, setCargo] = useState(CARGOS[0])
   const [centroCostos, setCentroCostos] = useState('')
-  const [entryDate, setEntryDate] = useState('') // Format: YYYY-MM-DD for native input
+  const [entryDate, setEntryDate] = useState('') 
   const [status, setStatus] = useState('Vinculado')
 
   const supabase = createClient()
@@ -32,7 +34,6 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
 
   if (!isOpen) return null
 
-  // Función para formatear RUT mientras se escribe
   const formatRut = (value: string) => {
     let clean = value.replace(/[^0-9kK]/g, '').toUpperCase()
     if (clean.length === 0) return ''
@@ -77,10 +78,10 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
 
       await logAction(
         'CREACIÓN',
-        'personnel',
+        'Personal',
         data.id,
-        { rut, name: `${firstName} ${lastName}`, cargo },
-        `Registro de nuevo colaborador: ${firstName} ${lastName}`
+        { rut, name: `${firstName} ${lastName}` },
+        `Nuevo ingreso de personal: ${firstName} ${lastName}`
       )
 
       setSuccess(true)
@@ -97,16 +98,78 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
     }
   }
 
+  const handleDownloadTemplate = () => {
+    const headers = ['rut', 'first_name', 'last_name', 'cargo', 'centro_costos', 'entry_date', 'status']
+    const example = ['12.345.678-9', 'Juan', 'Perez', 'Chofer', 'Obra Norte', '2026-04-21', 'Vinculado']
+    const csvContent = [headers, example].map(e => e.join(',')).join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', 'plantilla_personal_defluv.csv')
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setLoading(true)
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          // Normalizar RUTs en los datos cargados
+          const normalizedData = results.data.map((row: any) => ({
+            ...row,
+            rut: formatRut(row.rut?.toString() || '')
+          }))
+
+          const { error } = await supabase
+            .from('personal_records')
+            .insert(normalizedData)
+
+          if (error) throw error
+
+          await logAction(
+            'CARGA',
+            'Personal',
+            'BATCH',
+            { count: results.data.length },
+            `Carga masiva de personal: ${results.data.length} registros.`
+          )
+
+          setSuccess(true)
+          setTimeout(() => {
+            setSuccess(false)
+            onClose()
+            router.refresh()
+          }, 2000)
+        } catch (error: any) {
+          console.error('Bulk upload error:', error)
+          alert('Error en la carga masiva. Verifique el formato del archivo y que los RUTs no estén duplicados.')
+        } finally {
+          setLoading(false)
+        }
+      }
+    })
+  }
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm text-[#0a2d4d]">
       <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 text-[#0a2d4d]">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-[#0a2d4d] text-white flex items-center justify-center shadow-lg shadow-blue-900/20">
                 <UserPlus size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-bold text-[#0a2d4d] uppercase tracking-widest">Gestionar Personal</h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest">Gestionar Personal</h3>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Matriz de Recursos Humanos</p>
              </div>
           </div>
@@ -118,13 +181,13 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
         <div className="flex bg-gray-50 p-1 m-6 mb-0 rounded-xl border border-gray-100">
            <button 
             onClick={() => setMode('single')}
-            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${mode === 'single' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'single' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
            >
              Ingreso Individual
            </button>
            <button 
             onClick={() => setMode('bulk')}
-            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${mode === 'bulk' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === 'bulk' ? 'bg-white text-[#0a2d4d] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
            >
              Carga Masiva (CSV)
            </button>
@@ -139,7 +202,7 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
              <p className="text-sm text-gray-500">La matriz de personal ha sido actualizada.</p>
           </div>
         ) : mode === 'single' ? (
-          <form onSubmit={handleSingleSubmit} className="p-8 space-y-5 text-[#0a2d4d]">
+          <form onSubmit={handleSingleSubmit} className="p-8 space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Nombres</label>
@@ -231,8 +294,27 @@ export default function AddPersonnelModal({ isOpen, onClose }: Props) {
                 <p className="text-xs text-gray-500 mt-2 px-8 font-medium">Descargue la plantilla, complete los datos y suba el archivo para procesar múltiples registros a la vez.</p>
              </div>
              <div className="flex gap-4 w-full px-8">
-                <button className="flex-1 py-3 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50">Descargar Plantilla</button>
-                <button className="flex-[2] py-3 bg-[#0a2d4d] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-900/20 hover:bg-blue-900">Seleccionar CSV</button>
+                <button 
+                  onClick={handleDownloadTemplate}
+                  className="flex-1 py-3 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 flex items-center justify-center gap-2"
+                >
+                  <Download size={14} /> Plantilla
+                </button>
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading}
+                  className="flex-[2] py-3 bg-[#0a2d4d] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-900/20 hover:bg-blue-900 flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
+                  Seleccionar CSV
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleBulkUpload} 
+                  accept=".csv" 
+                  className="hidden" 
+                />
              </div>
              <p className="text-[9px] text-orange-600 font-black uppercase tracking-widest">Nota: El sistema validará RUTs duplicados automáticamente.</p>
           </div>

@@ -32,6 +32,7 @@ interface AuditLogWithDetails extends AuditLog {
 interface Props {
   initialLogs: AuditLogWithDetails[]
   profiles: { id: string; first_name: string; last_name: string }[]
+  userRole: string
 }
 
 interface Message {
@@ -53,7 +54,7 @@ const formatDateTimeChile = (dateString: string | null | undefined) => {
   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
 }
 
-export default function AuditClient({ initialLogs, profiles }: Props) {
+export default function AuditClient({ initialLogs, profiles, userRole }: Props) {
   const [selectedLog, setSelectedLog] = useState<AuditLogWithDetails | null>(null)
   const [selectedDocData, setSelectedDocData] = useState<Document | null>(null)
   const [messages, setMessages] = useState<Message[]>([
@@ -134,12 +135,13 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
       return
     }
 
+    setDeletingId('all') // Use deletingId for visual feedback
     setDeletingAll(true)
     try {
       const { error } = await supabase
         .from('audit_logs')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000') // Trick to delete all
+        .neq('id', '00000000-0000-0000-0000-000000000000') 
 
       if (error) throw error
 
@@ -160,6 +162,28 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
     if (selectedAction && log.action_type !== selectedAction) return false
     return true
   })
+
+  const exportToCSV = () => {
+    const headers = ['TIMESTAMP', 'USUARIO', 'ACCIÓN', 'DOCUMENTO', 'DESCRIPCIÓN']
+    const csvData = filteredLogs.map(log => [
+      formatDateTimeChile(log.timestamp),
+      log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA',
+      log.action_type.toUpperCase(),
+      log.resource_id,
+      log.justification || ''
+    ])
+
+    const csvContent = [headers, ...csvData].map(e => e.join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `auditoria_defluv_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans text-[#0a2d4d]">
@@ -193,21 +217,32 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
         <div className="space-y-6">
            {/* Top Actions Bar */}
            <div className="flex justify-end gap-3">
+              {userRole === 'admin' && (
+                <button 
+                  onClick={handleDeleteAll}
+                  disabled={deletingAll}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-white border border-red-100 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm disabled:opacity-50"
+                >
+                   {deletingAll ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} 
+                   Eliminar Registro
+                </button>
+              )}
               <button 
-                onClick={handleDeleteAll}
-                disabled={deletingAll}
-                className="flex items-center gap-2 px-6 py-2.5 bg-white border border-red-100 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm disabled:opacity-50"
+                onClick={() => exportToCSV('mensual')}
+                className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
               >
-                 {deletingAll ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} 
-                 Eliminar Registro
-              </button>
-              <button className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm">
                  <FileDown size={14} className="text-blue-600" /> Informe Mensual
               </button>
-              <button className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm">
+              <button 
+                onClick={() => exportToCSV('anual')}
+                className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
+              >
                  <FileDown size={14} className="text-blue-600" /> Informe Anual
               </button>
-              <button className="flex items-center gap-2 px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20">
+              <button 
+                onClick={() => exportToCSV('completo')}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20"
+              >
                  <Download size={14} /> Exportar CSV
               </button>
            </div>
@@ -236,6 +271,9 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                     <option value="REEMPLAZO">REEMPLAZO</option>
                     <option value="APROBACIÓN">APROBACIÓN</option>
                     <option value="CREACIÓN">CREACIÓN</option>
+                    <option value="CARGA">CARGA</option>
+                    <option value="ELIMINACIÓN">ELIMINACIÓN</option>
+                    <option value="ACTUALIZACIÓN">ACTUALIZACIÓN</option>
                  </select>
               </div>
               <button className="h-11 bg-gray-50 border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] flex items-center justify-center gap-2 hover:bg-gray-100 transition-all uppercase tracking-widest">
@@ -266,7 +304,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
                             <td className="px-8 py-5 text-[11px] font-bold text-gray-400 tabular-nums">{formatDateTimeChile(log.timestamp)}</td>
                             <td className="px-8 py-5 text-xs font-black uppercase">{log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA'}</td>
                             <td className="px-8 py-5 text-xs font-black">
-                               <span className={log.action_type === 'APROBACIÓN' || log.action_type === 'Aprobado' ? 'text-green-600' : log.action_type === 'REEMPLAZO' ? 'text-orange-600' : 'text-blue-600'}>
+                               <span className={log.action_type === 'APROBACIÓN' || log.action_type === 'Aprobado' ? 'text-green-600' : log.action_type === 'REEMPLAZO' || log.action_type === 'ELIMINACIÓN' ? 'text-orange-600' : 'text-blue-600'}>
                                   {log.action_type.toUpperCase()}
                                </span>
                             </td>
@@ -286,7 +324,7 @@ export default function AuditClient({ initialLogs, profiles }: Props) {
         </div>
       ) : (
         /* Split View: Analysis + Bot */
-        <div className="flex-1 flex overflow-hidden border-t border-gray-100">
+        <div className="flex-1 flex overflow-hidden border-t border-gray-200">
            <div className="flex-1 flex flex-col bg-gray-100 relative">
               <div className="bg-white p-4 border-b border-gray-200 flex justify-between items-center px-12">
                  <span className="text-xs font-black text-[#0a2d4d] uppercase tracking-widest">Análisis de Registro</span>
