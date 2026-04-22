@@ -10,11 +10,14 @@ import {
   Eye,
   Download,
   Loader2,
-  Edit3
+  Edit3,
+  FileUp,
+  FileDown
 } from 'lucide-react'
 import { Task, KPI, Deadline } from '@/app/types/database'
 import CreateTaskModal from './CreateTaskModal'
 import EditTaskModal from './EditTaskModal'
+import UploadResolutionModal from './UploadResolutionModal'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 
@@ -29,6 +32,7 @@ interface Props {
   deadlines: Deadline[]
   userName: string
   userRole: string
+  userId: string
   departments: { id: string; name: string }[]
   users: { id: string; first_name: string; last_name: string; department_id: string | null }[]
 }
@@ -49,9 +53,11 @@ const formatDateChile = (dateString: string | null | undefined) => {
   return `${day}/${month}/${year}`
 }
 
-export default function DashboardClient({ allDocs, tasks, deadlines, userName, userRole, departments, users }: Props) {
+export default function DashboardClient({ allDocs, tasks, deadlines, userName, userRole, userId, departments, users }: Props) {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
   const [editModalTask, setEditModalTask] = useState<TaskWithDetails | null>(null)
+  const [uploadResTask, setUploadResTask] = useState<{id: string, title: string} | null>(null)
+  const [downloadMenuTask, setDownloadMenuTask] = useState<TaskWithDetails | null>(null)
   const [selectedDept, setSelectedDept] = useState('')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
@@ -88,7 +94,7 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
       const url = window.URL.createObjectURL(data)
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', fileName || 'adjunto-tarea.pdf')
+      link.setAttribute('download', fileName)
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -212,15 +218,15 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
 
          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-               <table className="w-full text-left border-collapse min-w-[1000px]">
+               <table className="w-full text-left border-collapse min-w-[1100px]">
                   <thead>
                      <tr className="bg-gray-50/50 border-b border-gray-100">
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarea</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Departamento</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Responsable</th>
-                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Plazo</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Prioridad</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Documentación</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Opciones</th>
                      </tr>
                   </thead>
@@ -229,15 +235,13 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                        <tr key={idx} className="hover:bg-gray-50 transition-colors group text-[#0a2d4d]">
                           <td className="px-8 py-6">
                              <p className="text-xs font-bold uppercase">{t.title}</p>
+                             <p className="text-[9px] text-gray-400 font-bold uppercase mt-1 truncate max-w-[200px]" title={t.description}>{t.description || 'Sin descripción'}</p>
                           </td>
                           <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">
                              {t.department?.name || 'S/D'}
                           </td>
                           <td className="px-8 py-6 text-[10px] font-black uppercase text-gray-500">
                              {t.responsible ? `${t.responsible.first_name} ${t.responsible.last_name}` : 'SIN ASIGNAR'}
-                          </td>
-                          <td className="px-8 py-6 max-w-[200px]">
-                             <p className="text-[10px] text-gray-400 font-bold uppercase truncate" title={t.description}>{t.description || 'Sin descripción'}</p>
                           </td>
                           <td className="px-8 py-6 text-xs font-bold text-gray-500 tabular-nums text-center">{formatDateChile(t.due_date)}</td>
                           <td className="px-8 py-6 text-center">
@@ -247,26 +251,28 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                           </td>
                           <td className="px-8 py-6 text-right">
                              <div className="flex justify-end gap-2 text-gray-300">
-                                {t.instruction_file_path && (
-                                   <>
-                                      <button 
-                                         onClick={() => handlePreview(t.instruction_file_path!)}
-                                         className="p-1 hover:text-blue-600 transition-colors"
-                                         title="Ver Adjunto"
-                                      >
-                                         <Eye size={18} />
-                                      </button>
-                                      <button 
-                                         onClick={() => handleDownload(t.instruction_file_path!, `Adjunto_Tarea_${t.id.slice(0,5)}.pdf`, t.id)}
-                                         disabled={downloadingId === t.id}
-                                         className="p-1 hover:text-green-600 transition-colors disabled:opacity-50"
-                                         title="Descargar Adjunto"
-                                      >
-                                         {downloadingId === t.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                                      </button>
-                                   </>
+                                {t.requires_document && (t.assigned_to_user_id === userId || userRole === 'admin') && !t.resolution_file_path && (
+                                   <button 
+                                      onClick={() => setUploadResTask({id: t.id, title: t.title})}
+                                      className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
+                                      title="Subir Documento de Respuesta"
+                                   >
+                                      <FileUp size={16} />
+                                   </button>
                                 )}
-
+                                {(t.instruction_file_path || t.resolution_file_path) && (
+                                   <button 
+                                      onClick={() => setDownloadMenuTask(t)}
+                                      className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors border border-green-100"
+                                      title="Ver/Descargar Documentos"
+                                   >
+                                      <Download size={16} />
+                                   </button>
+                                )}
+                             </div>
+                          </td>
+                          <td className="px-8 py-6 text-right">
+                             <div className="flex justify-end gap-2 text-gray-300">
                                 {userRole === 'admin' && (
                                   <button 
                                     onClick={() => setEditModalTask(t)}
@@ -276,7 +282,6 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                                     <Edit3 size={18} />
                                   </button>
                                 )}
-
                                 <button className="px-4 py-1.5 border border-gray-200 rounded-lg text-[9px] font-black text-[#0a2d4d] hover:bg-white hover:shadow-md transition-all uppercase tracking-widest">
                                    Detalles
                                 </button>
@@ -295,6 +300,50 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
          </div>
       </div>
 
+      {/* Download Choice Menu (Modal overlay) */}
+      {downloadMenuTask && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm">
+           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-8 space-y-6 text-[#0a2d4d]">
+              <div className="flex justify-between items-center">
+                 <h4 className="text-xs font-black uppercase tracking-widest">Descargar Documentación</h4>
+                 <button onClick={() => setDownloadMenuTask(null)}><X size={20} className="text-gray-400" /></button>
+              </div>
+              <div className="space-y-3">
+                 {downloadMenuTask.instruction_file_path && (
+                    <button 
+                       onClick={() => handleDownload(downloadMenuTask.instruction_file_path!, 'Plantilla_Llenado.pdf', downloadMenuTask.id)}
+                       className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-blue-50 hover:border-blue-200 transition-all group"
+                    >
+                       <div className="flex items-center gap-3">
+                          <FileText className="text-blue-600" size={20} />
+                          <span className="text-[10px] font-black uppercase">Plantilla de Llenado</span>
+                       </div>
+                       <Download size={14} className="text-gray-300 group-hover:text-blue-600" />
+                    </button>
+                 )}
+                 {downloadMenuTask.resolution_file_path && (
+                    <button 
+                       onClick={() => handleDownload(downloadMenuTask.resolution_file_path!, 'Respuesta_Completada.pdf', downloadMenuTask.id)}
+                       className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-green-50 hover:border-green-200 transition-all group"
+                    >
+                       <div className="flex items-center gap-3">
+                          <CheckCircle2 className="text-green-600" size={20} />
+                          <span className="text-[10px] font-black uppercase">Documento Completado</span>
+                       </div>
+                       <Download size={14} className="text-gray-300 group-hover:text-green-600" />
+                    </button>
+                 )}
+              </div>
+              <button 
+                 onClick={() => setDownloadMenuTask(null)}
+                 className="w-full py-3 text-[10px] font-black uppercase text-gray-400 hover:text-gray-600"
+              >
+                 Cancelar
+              </button>
+           </div>
+        </div>
+      )}
+
       <CreateTaskModal 
         isOpen={isCreateTaskOpen}
         onClose={() => setIsCreateTaskOpen(false)}
@@ -308,6 +357,13 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
         departments={departments}
         users={users}
         task={editModalTask}
+      />
+
+      <UploadResolutionModal 
+        isOpen={!!uploadResTask}
+        onClose={() => setUploadResTask(null)}
+        taskId={uploadResTask?.id || ''}
+        taskTitle={uploadResTask?.title || ''}
       />
     </div>
   )

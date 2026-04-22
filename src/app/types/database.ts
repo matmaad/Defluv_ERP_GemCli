@@ -86,8 +86,9 @@ export interface Task {
   due_date: string;
   status: DocStatus;
   priority: TaskPriority;
-  instruction_file_path?: string; // From requester
-  resolution_file_path?: string; // From assignee
+  requires_document: boolean;
+  instruction_file_path?: string; // From requester (Template)
+  resolution_file_path?: string; // From assignee (Completed)
   created_at: string;
   updated_at: string;
 }
