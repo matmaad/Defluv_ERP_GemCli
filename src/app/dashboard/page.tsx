@@ -58,6 +58,7 @@ export default async function DashboardPage() {
       deadlines={deadlines || []}
       userName={profile ? `${profile.first_name} ${profile.last_name}` : 'Usuario'}
       userRole={profile?.role || 'regular_user'}
+      userId={user?.id || ''}
       departments={departments || []}
       users={formattedProfiles}
     />
