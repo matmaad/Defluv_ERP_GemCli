@@ -58,6 +58,10 @@
 - [x] **QA & Producción**
     - [x] Pruebas finales de roles (RBAC).
     - [x] Despliegue final en Vercel con variables de entorno de producción.
+- [ ] **Correcciones de Post-Lanzamiento**
+    - [ ] Corregir y validar sistema de envío de correos (Resend) al asignar tareas a responsables (Implementación actual deficiente).
 
 ---
 **PROYECTO LISTO PARA PRODUCCIÓN** 🚀
+
+> **Nota de Calidad Final:** Al finalizar todo el proyecto y lanzar la versión final, realizaremos una auditoría técnica exhaustiva de "pies a cabeza" en GitHub, Vercel y Supabase. El objetivo es identificar inconsistencias, depurar el código, optimizar tiempos de carga y resolver cualquier brecha de seguridad para garantizar la máxima eficiencia del sistema.
