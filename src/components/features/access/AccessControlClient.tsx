@@ -206,7 +206,7 @@ export default function AccessControlClient({ profiles, departments, permissions
                               <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs ${selectedUser?.id === p.id ? 'bg-[#0a2d4d] text-white' : 'bg-white text-gray-400 shadow-sm border border-gray-100'}`}>
                                  {p.first_name[0]}{p.last_name[0]}
                               </div>
-                              <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm ${isOnline(p.last_seen_at) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm z-10 ${isOnline(p.last_seen_at) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                            </div>
                            <div className="overflow-hidden">
                               <p className="text-xs font-black uppercase truncate">{p.first_name} {p.last_name}</p>
