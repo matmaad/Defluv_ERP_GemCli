@@ -23,8 +23,8 @@ export async function updateEmailAction(newEmail: string) {
     }
 
     return { success: true }
-  } catch (err) {
-    return { error: 'Error al actualizar el correo' }
+  } catch (err: any) {
+    return { error: err.message || 'Error al actualizar el correo' }
   }
 }
 
@@ -46,8 +46,8 @@ export async function updatePasswordAction(newPassword: string) {
     }
 
     return { success: true }
-  } catch (err) {
-    return { error: 'Error al actualizar la contraseña' }
+  } catch (err: any) {
+    return { error: err.message || 'Error al actualizar la contraseña' }
   }
 }
 
@@ -93,7 +93,7 @@ export async function registerUserAction(userData: any) {
     
   } catch (err: any) {
     console.error('Admin Registration Error:', err)
-    return { error: 'Error inesperado del servidor al registrar' }
+    return { error: err.message || 'Error inesperado del servidor al registrar' }
   }
 }
 
@@ -110,7 +110,10 @@ export async function updateUserAction(userId: string, updates: any) {
         email: updates.email,
         email_confirm: true
       })
-      if (authError) return { error: 'Error en Autenticación: ' + authError.message }
+      if (authError) {
+        console.error('Auth Admin Update Error:', authError)
+        return { error: 'Error en Autenticación: ' + authError.message }
+      }
     }
 
     // 2. Update Profile Table
@@ -137,7 +140,7 @@ export async function updateUserAction(userId: string, updates: any) {
     return { success: true }
   } catch (err: any) {
     console.error('Update User Error:', err)
-    return { error: 'Error crítico al actualizar el usuario' }
+    return { error: err.message || 'Error crítico al actualizar el usuario' }
   }
 }
 
@@ -163,6 +166,6 @@ export async function deleteUserAction(userId: string, userName: string) {
     return { success: true }
   } catch (err: any) {
     console.error('Delete User Error:', err)
-    return { error: 'Error crítico al eliminar el usuario' }
+    return { error: err.message || 'Error crítico al eliminar el usuario' }
   }
 }
