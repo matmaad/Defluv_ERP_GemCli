@@ -4,52 +4,54 @@ import AccessControlClient from '@/components/features/access/AccessControlClien
 export default async function AccesoPage() {
   const supabase = await createClient()
 
-  // 1. Fetch current user role safely
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  let currentUserRole = 'regular_user'
-  
-  if (authUser) {
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authUser.id)
-        .maybeSingle() // Use maybeSingle to avoid crash if profile missing
-      if (profile) currentUserRole = profile.role
-    } catch (e) {
-      console.error('Error fetching current user role:', e)
-    }
-  }
+  // 1. Fetch current user role for UI logic
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user?.id).single()
 
-  // 2. Fetch profiles safely
-  const { data: profiles, error: pError } = await supabase
+  // 2. Fetch all profiles
+  const { data: profiles } = await supabase
     .from('profiles')
     .select('*')
     .order('first_name', { ascending: true })
 
-  if (pError) console.error('Profiles fetch error:', pError)
-
-  // 3. Fetch departments safely
-  const { data: departments, error: dError } = await supabase
+  // 3. Fetch all departments for the matrix
+  const { data: departments } = await supabase
     .from('departments')
     .select('*')
     .order('name', { ascending: true })
 
-  if (dError) console.error('Departments fetch error:', dError)
-
-  // 4. Fetch permissions safely
-  const { data: permissions, error: permError } = await supabase
+  // 4. Fetch all permissions
+  const { data: permissions } = await supabase
     .from('permissions')
     .select('*')
 
-  if (permError) console.error('Permissions fetch error:', permError)
+  // 5. Fetch Session Stats (Aggregated)
+  // We'll calculate the sum of duration_seconds for each user
+  const { data: sessionStats } = await supabase
+    .from('user_sessions')
+    .select('user_id, duration_seconds')
+
+  // Group stats locally
+  const statsMap: Record<string, number> = {}
+  sessionStats?.forEach(s => {
+    statsMap[s.user_id] = (statsMap[s.user_id] || 0) + (s.duration_seconds || 0)
+  })
+
+  // 6. Fetch Recent Sessions for Activity Tab
+  const { data: recentSessions } = await supabase
+    .from('user_sessions')
+    .select('*')
+    .order('login_at', { ascending: false })
+    .limit(100)
 
   return (
     <AccessControlClient 
-      profiles={profiles || []} 
+      profiles={profiles || []}
       departments={departments || []}
       permissions={permissions || []}
-      currentUserRole={currentUserRole}
+      currentUserRole={profile?.role || 'regular_user'}
+      sessionStats={statsMap}
+      recentSessions={recentSessions || []}
     />
   )
 }

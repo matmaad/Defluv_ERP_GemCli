@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   Users, 
   ShieldCheck, 
@@ -14,10 +14,7 @@ import {
   Clock,
   Activity,
   Calendar,
-  Monitor,
-  X,
-  Shield,
-  Send
+  Monitor
 } from 'lucide-react'
 import { Profile, Department, Permission } from '@/app/types/database'
 import { createClient } from '@/utils/supabase/cliente'
@@ -32,9 +29,11 @@ interface Props {
   departments: Department[]
   permissions: Permission[]
   currentUserRole: string
+  sessionStats: Record<string, number>
+  recentSessions: any[]
 }
 
-export default function AccessControlClient({ profiles, departments, permissions: initialPermissions, currentUserRole }: Props) {
+export default function AccessControlClient({ profiles, departments, permissions: initialPermissions, currentUserRole, sessionStats, recentSessions }: Props) {
   const [selectedUser, setSelectedUser] = useState(profiles[0] || null)
   const [localPermissions, setLocalPermissions] = useState<Permission[]>(initialPermissions)
   const [loading, setLoading] = useState(false)
@@ -164,6 +163,15 @@ export default function AccessControlClient({ profiles, departments, permissions
     return `${day}/${month}/${year} ${hours}:${minutes}`
   }
 
+  const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    if (h === 0) return `${m}m`
+    return `${h}h ${m}m`
+  }
+
+  const userSessions = recentSessions.filter(s => s.user_id === selectedUser?.id)
+
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans text-[#0a2d4d]">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
@@ -223,7 +231,6 @@ export default function AccessControlClient({ profiles, departments, permissions
         <div className="lg:col-span-9 space-y-6">
            {selectedUser ? (
              <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
-                {/* Header User Detail */}
                 <div className="p-8 border-b border-gray-50 bg-gray-50/20 flex justify-between items-center">
                    <div className="flex gap-5 items-center">
                       <div className="w-14 h-14 rounded-2xl bg-[#0a2d4d] text-white flex items-center justify-center shadow-xl shadow-blue-900/20">
@@ -329,12 +336,36 @@ export default function AccessControlClient({ profiles, departments, permissions
                                   <Clock size={16} />
                                   <span className="text-[9px] font-black uppercase tracking-widest">Total Conectado</span>
                                </div>
-                               <p className="text-2xl font-black">-- hrs</p>
+                               <p className="text-2xl font-black">{formatDuration(sessionStats[selectedUser.id] || 0)}</p>
                             </div>
                          </div>
-                         <div className="space-y-4 text-center py-20 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
-                            <Activity size={48} className="mx-auto text-gray-200" />
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No hay actividad reciente.</p>
+
+                         <div className="space-y-4">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100 pb-3">Actividad Reciente (Últimas Sesiones)</h4>
+                            <div className="space-y-3">
+                               {userSessions.length > 0 ? userSessions.slice(0, 5).map((s: any, idx: number) => (
+                                 <div key={idx} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
+                                    <div className="flex items-center gap-4">
+                                       <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                                          <Monitor size={14} />
+                                       </div>
+                                       <div>
+                                          <p className="text-xs font-black uppercase">{formatDateTimeChile(s.login_at)}</p>
+                                          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Ingreso al Sistema</p>
+                                       </div>
+                                    </div>
+                                    <div className="text-right">
+                                       <p className="text-xs font-black text-[#0a2d4d]">{formatDuration(s.duration_seconds)}</p>
+                                       <p className="text-[8px] font-bold text-gray-400 uppercase">Duración</p>
+                                    </div>
+                                 </div>
+                               )) : (
+                                 <div className="py-10 text-center space-y-4 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
+                                    <Activity size={48} className="mx-auto text-gray-200" />
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Sin registros recientes.</p>
+                                 </div>
+                               )}
+                            </div>
                          </div>
                       </div>
                    )}
