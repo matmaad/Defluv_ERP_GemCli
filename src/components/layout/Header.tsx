@@ -20,6 +20,7 @@ const routeNames: Record<string, string> = {
   '/acceso': 'Control de Acceso',
   '/auditoria': 'Registro de Auditoría',
   '/opciones': 'Opciones de Cuenta',
+  '/defluvot': 'ASISTENTE INTELIGENTE',
 }
 
 const routeSubtitles: Record<string, string> = {
@@ -29,6 +30,7 @@ const routeSubtitles: Record<string, string> = {
   '/acceso': 'GESTIÓN Y CONTROL DE USUARIOS',
   '/auditoria': 'TRAZABILIDAD TÉCNICA Y CUMPLIMIENTO',
   '/opciones': 'Configuración de Perfil',
+  '/defluvot': 'CONSULTAS Y SOPORTE IA',
 }
 
 export default function Header({ user }: Props) {
