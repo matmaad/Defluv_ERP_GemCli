@@ -11,27 +11,35 @@ export default async function DocumentosPage() {
   // 2. Fetch Departments
   const { data: departments } = await supabase.from('departments').select('*').order('name', { ascending: true })
 
-  // 3. Fetch User Permissions (To enforce can_edit in UI)
+  // 3. Fetch User Permissions
   const { data: userPermissions } = await supabase
     .from('permissions')
     .select('department_id, can_view, can_edit, can_approve')
     .eq('user_id', user?.id)
 
-  // 4. Fetch Master Rules (The "Standard")
+  // 4. Fetch Master Rules (The "Standard") - Including Responsible Department
   let masterQuery = supabase.from('document_master_matrix').select(`
     *,
     department:departments (name),
-    responsible:profiles!assigned_to_profile_id (first_name, last_name)
+    responsible:profiles!assigned_to_profile_id (
+      first_name, 
+      last_name,
+      department:departments (name)
+    )
   `)
   if (profile?.role === 'regular_user') {
     masterQuery = masterQuery.eq('department_id', profile.department_id)
   }
   const { data: masterRules } = await masterQuery
 
-  // 5. Fetch Uploaded Documents (The "History")
+  // 5. Fetch Uploaded Documents (The "History") - Including Uploader Department
   let docQuery = supabase.from('documents').select(`
     *,
-    uploader:profiles!uploaded_by_user_id (first_name, last_name),
+    uploader:profiles!uploaded_by_user_id (
+      first_name, 
+      last_name,
+      department:departments (name)
+    ),
     department:departments (name)
   `)
   

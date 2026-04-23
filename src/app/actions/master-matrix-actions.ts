@@ -20,6 +20,7 @@ export async function createMasterRuleAction(formData: any) {
         frequency: formData.frequency,
         standard_due_time: formData.standard_due_time,
         template_storage_path: formData.template_storage_path,
+        due_date: formData.due_date || null, // New Date field
         is_active: true
       })
       .select()
@@ -59,6 +60,7 @@ export async function updateMasterRuleAction(id: string, formData: any) {
         frequency: formData.frequency,
         standard_due_time: formData.standard_due_time,
         template_storage_path: formData.template_storage_path,
+        due_date: formData.due_date || null, // Updated Date
         is_active: formData.is_active
       })
       .eq('id', id)

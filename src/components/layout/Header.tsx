@@ -26,10 +26,13 @@ export default function Header({ user }: Props) {
   const pathname = usePathname()
   const title = routeNames[pathname] || 'Sistema de Gestión'
   
-  // Specific subtitle for Dashboard as requested
-  const subtitle = pathname === '/dashboard' 
-    ? 'GESTIÓN DE PROCESOS OPERATIVOS' 
-    : 'Gestión de Procesos Corporativos'
+  // Dynamic subtitle based on route
+  let subtitle = 'Gestión de Procesos Corporativos'
+  if (pathname === '/dashboard') {
+    subtitle = 'GESTIÓN DE PROCESOS OPERATIVOS'
+  } else if (pathname === '/documentos') {
+    subtitle = 'GESTIÓN Y CONTROL DE DOCUMENTOS'
+  }
 
   return (
     <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 shrink-0 z-40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03)]">

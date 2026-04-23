@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { X, PlusCircle, Loader2, CheckCircle2, FileText, Clock, Briefcase, User, Info } from 'lucide-react'
+import { X, PlusCircle, Loader2, CheckCircle2, FileText, Clock, Briefcase, User, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createMasterRuleAction } from '@/app/actions/master-matrix-actions'
 import { createClient } from '@/utils/supabase/cliente'
@@ -23,6 +23,7 @@ export default function CreateMasterRuleModal({ isOpen, onClose, departments, pr
   const [assignedId, setAssignedId] = useState('')
   const [frequency, setFrequency] = useState('DIARIO')
   const [dueTime, setDueTime] = useState('18:00')
+  const [dueDate, setDueDate] = useState('') 
   const [file, setFile] = useState<File | null>(null)
   
   const router = useRouter()
@@ -51,6 +52,7 @@ export default function CreateMasterRuleModal({ isOpen, onClose, departments, pr
         assigned_to_profile_id: assignedId || null,
         frequency,
         standard_due_time: dueTime,
+        due_date: dueDate || null,
         template_storage_path: storagePath
       })
 
@@ -97,7 +99,7 @@ export default function CreateMasterRuleModal({ isOpen, onClose, departments, pr
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            <div className="space-y-4">
+            <div className="space-y-4 text-[#0a2d4d]">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Título del Requerimiento</label>
                 <input 
@@ -119,7 +121,7 @@ export default function CreateMasterRuleModal({ isOpen, onClose, departments, pr
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Responsable Sugerido</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Encargado / Responsable</label>
                   <select 
                     value={assignedId} onChange={(e) => setAssignedId(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black uppercase text-[#0a2d4d]"
@@ -130,22 +132,29 @@ export default function CreateMasterRuleModal({ isOpen, onClose, departments, pr
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Periodicidad</label>
                   <select 
                     value={frequency} onChange={(e) => setFrequency(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black uppercase text-[#0a2d4d]"
                   >
-                    <option value="DIARIO">Cíclico Diario</option>
-                    <option value="SEMANAL">Cíclico Semanal</option>
-                    <option value="MENSUAL">Cíclico Mensual</option>
-                    <option value="ANUAL">Cíclico Anual</option>
-                    <option value="UNICA">Carga Única</option>
+                    <option value="DIARIO">DIARIO</option>
+                    <option value="SEMANAL">SEMANAL</option>
+                    <option value="MENSUAL">MENSUAL</option>
+                    <option value="ANUAL">ANUAL</option>
+                    <option value="UNICA">ÚNICA</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Hora Límite de Cierre</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Límite</label>
+                  <input 
+                    type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-bold text-zinc-900"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Hora Límite</label>
                   <input 
                     type="time" required value={dueTime} onChange={(e) => setDueTime(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-bold text-zinc-900"
@@ -154,14 +163,14 @@ export default function CreateMasterRuleModal({ isOpen, onClose, departments, pr
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Plantilla de Guía (PDF/Excel)</label>
-                <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-all">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Plantilla de Guía (Opcional)</label>
+                <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-[#0a2d4d] transition-all bg-gray-50/50">
                   <input 
                     type="file" onChange={(e) => setFile(e.target.files?.[0] || null)}
                     className="absolute inset-0 opacity-0 cursor-pointer"
                   />
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <div className="p-2 bg-white rounded-lg shadow-sm border border-gray-100 text-gray-400">
                       <FileText size={18} />
                     </div>
                     <p className="text-[10px] font-bold text-gray-500 uppercase">
