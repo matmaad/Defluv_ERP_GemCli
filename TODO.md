@@ -60,6 +60,7 @@
     - [x] Despliegue final en Vercel con variables de entorno de producción.
 - [ ] **Correcciones de Post-Lanzamiento**
     - [ ] Corregir y validar sistema de envío de correos (Resend) al asignar tareas a responsables (Implementación actual deficiente).
+    - [ ] Mejorar interacción y entrenamiento de bot DEFLUVOT.
 
 ---
 **PROYECTO LISTO PARA PRODUCCIÓN** 🚀

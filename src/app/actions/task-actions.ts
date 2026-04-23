@@ -9,9 +9,6 @@ export async function createTaskWithNotification(taskData: any) {
   
   // Robust Resend initialization
   const apiKey = process.env.RESEND_API_KEY
-  console.log('DEBUG: Iniciando creación de tarea...')
-  console.log('DEBUG: API Key de Resend detectada:', apiKey ? `SÍ (Prefijo: ${apiKey.substring(0, 7)}...)` : 'NO')
-  
   const resend = apiKey ? new Resend(apiKey) : null
   
   try {
@@ -33,82 +30,64 @@ export async function createTaskWithNotification(taskData: any) {
       `)
       .single()
 
-    if (dbError) {
-      console.error('DB Insert Error:', dbError)
-      throw new Error(`Error en base de datos: ${dbError.message}`)
-    }
+    if (dbError) throw new Error(`Error en base de datos: ${dbError.message}`)
 
     // 2. Audit Log
-    try {
-      await logActionServer(
-        'CREACIÓN',
-        'Tareas',
-        task.id,
-        `Nueva tarea asignada: ${task.title}`
-      )
-    } catch (auditErr) {
-      console.error('Non-blocking Audit Error:', auditErr)
-    }
+    await logActionServer('CREACIÓN', 'Tareas', task.id, `Nueva tarea asignada: ${task.title}`)
 
-    // 3. Email Notification
+    // 3. Email Notification Logic
+    let emailSent = false
+    let emailError = null
+
     if (resend && task.responsible && task.responsible.email) {
       const { email, first_name, last_name } = task.responsible
-      console.log(`DEBUG: Intentando enviar email de notificación a: ${email}`)
       
       let attachmentLink = ''
       if (task.instruction_file_path) {
-        try {
-          const { data } = await supabase.storage
-            .from('documents')
-            .createSignedUrl(task.instruction_file_path, 604800)
-          attachmentLink = data?.signedUrl || ''
-        } catch (sErr) {
-          console.error('Signed URL Error:', sErr)
-        }
+        const { data } = await supabase.storage.from('documents').createSignedUrl(task.instruction_file_path, 604800)
+        attachmentLink = data?.signedUrl || ''
       }
 
-      const formattedDate = task.due_date 
-        ? new Date(task.due_date).toLocaleDateString('es-CL')
-        : 'Sin fecha límite'
+      const formattedDate = task.due_date ? new Date(task.due_date).toLocaleDateString('es-CL') : 'Sin fecha'
 
       try {
-        const emailResult = await resend.emails.send({
+        const { error } = await resend.emails.send({
           from: 'DEFLUV ERP <onboarding@resend.dev>', 
           to: email,
-          subject: `🔔 Nueva Tarea Asignada: ${task.title}`,
+          subject: `🔔 Nueva Tarea: ${task.title}`,
           html: `
-            <div style="font-family: sans-serif; color: #0a2d4d; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 16px; padding: 40px;">
-              <h2 style="text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #0a2d4d; padding-bottom: 10px;">Nueva Tarea Asignada</h2>
+            <div style="font-family: sans-serif; color: #0a2d4d; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #eee; border-radius: 12px;">
+              <h2 style="border-bottom: 2px solid #0a2d4d; padding-bottom: 10px;">NUEVA TAREA ASIGNADA</h2>
               <p>Hola <strong>${first_name} ${last_name}</strong>,</p>
-              <p>Se te ha asignado una nueva tarea en el sistema de gestión DEFLUV ERP.</p>
-              
-              <div style="background-color: #f9fafb; padding: 20px; border-radius: 12px; margin: 20px 0;">
-                <p style="margin: 5px 0;"><strong>Título:</strong> ${task.title}</p>
-                <p style="margin: 5px 0;"><strong>Departamento:</strong> ${task.department?.name || 'S/D'}</p>
-                <p style="margin: 5px 0;"><strong>Prioridad:</strong> ${task.priority}</p>
-                <p style="margin: 5px 0;"><strong>Fecha Límite:</strong> ${formattedDate}</p>
-                <p style="margin: 15px 0;"><strong>Descripción:</strong><br/>${task.description || 'Sin descripción adicional'}</p>
+              <p>Tienes un nuevo requerimiento en el panel de control:</p>
+              <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #0a2d4d;">
+                <p><strong>Título:</strong> ${task.title}</p>
+                <p><strong>Departamento:</strong> ${task.department?.name || 'General'}</p>
+                <p><strong>Plazo:</strong> ${formattedDate}</p>
               </div>
-
-              ${attachmentLink ? `
-                <div style="margin-top: 20px; text-align: center;">
-                  <a href="${attachmentLink}" style="background-color: #0a2d4d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; text-transform: uppercase;">Descargar Archivo Adjunto</a>
-                </div>
-              ` : ''}
-
-              <p style="margin-top: 30px; font-size: 12px; color: #9ca3af;">Este es un mensaje automático generado por DEFLUV ERP. Por favor no responder.</p>
+              ${attachmentLink ? `<p style="text-align: center; margin-top: 20px;"><a href="${attachmentLink}" style="background: #0a2d4d; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">VER ADJUNTO</a></p>` : ''}
+              <p style="font-size: 10px; color: #999; margin-top: 30px;">DEFLUV ERP - Sistema de Gestión de Calidad</p>
             </div>
           `
         })
-        console.log('DEBUG: Resultado de Resend:', emailResult)
-      } catch (emailErr: any) {
-        console.error('DEBUG: Error al enviar email:', emailErr.message)
+        
+        if (error) {
+          emailError = error.message
+          console.error('Resend Error:', error)
+        } else {
+          emailSent = true
+        }
+      } catch (err: any) {
+        emailError = err.message
       }
-    } else {
-      console.log('DEBUG: No se cumplen las condiciones para enviar email (falta responsable, email o configuración)')
     }
 
-    return { success: true }
+    return { 
+      success: true, 
+      emailSent, 
+      warning: emailError ? `Tarea creada, pero el correo falló: ${emailError}. (Verifica que el dominio esté validado en Resend)` : null 
+    }
+
   } catch (error: any) {
     console.error('Task Action Error:', error)
     return { error: error.message || 'Error inesperado del servidor' }
