@@ -51,6 +51,7 @@ export interface DocumentMasterMatrix {
   assigned_to_profile_id: string | null;
   frequency: 'DIARIO' | 'SEMANAL' | 'MENSUAL' | 'ANUAL' | 'UNICA';
   standard_due_time: string;
+  due_date: string | null; // Added
   template_storage_path: string | null;
   is_active: boolean;
   created_at: string;
