@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { X, ClipboardList, Loader2, CheckCircle2, FileUp } from 'lucide-react'
+import { X, ClipboardList, Loader2, CheckCircle2, FileUp, Clock } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 import { createTaskWithNotification } from '@/app/actions/task-actions'
@@ -21,6 +21,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
   const [deptId, setDeptId] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
   const [dueDate, setDueDate] = useState('')
+  const [dueTime, setDueTime] = useState('18:00') // Default time
   const [priority, setPriority] = useState('Estándar')
   const [requiresDoc, setRequiresDoc] = useState(false)
   const [file, setFile] = useState<File | null>(null)
@@ -52,12 +53,15 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
         if (uploadError) throw uploadError
       }
 
+      // Combine date and time
+      const finalDueDate = dueDate ? `${dueDate}T${dueTime}:00` : null
+
       const result = await createTaskWithNotification({
         title,
         description: desc,
         assigned_to_user_id: assignedTo || null,
         department_id: deptId || null,
-        due_date: dueDate || null,
+        due_date: finalDueDate,
         priority,
         requires_document: requiresDoc,
         instruction_file_path: filePath
@@ -81,7 +85,7 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm text-[#0a2d4d]">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-[#0a2d4d]/60 backdrop-blur-sm text-[#0a2d4d]">
       <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div className="flex items-center gap-3">
@@ -157,15 +161,26 @@ export default function CreateTaskModal({ isOpen, onClose, departments, users }:
                 />
               </div>
 
-              <div className="flex flex-col justify-center gap-2 px-2">
+              <div className="space-y-1.5 text-[#0a2d4d]">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Hora Límite (Opcional)</label>
+                <div className="relative">
+                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                   <input 
+                    type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                   />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 px-2">
                  <div className="flex items-center gap-3">
                     <input 
                       type="checkbox" id="req-doc" checked={requiresDoc} onChange={(e) => setRequiresDoc(e.target.checked)}
                       className="w-5 h-5 rounded-lg border-gray-200 text-[#0a2d4d] focus:ring-[#0a2d4d]/20 cursor-pointer"
                     />
-                    <label htmlFor="req-doc" className="text-[10px] font-black uppercase tracking-widest cursor-pointer">Exigir Doc. Respuesta</label>
+                    <label htmlFor="req-doc" className="text-[10px] font-black uppercase tracking-widest cursor-pointer">Exigir Documento de Respuesta</label>
                  </div>
-              </div>
             </div>
 
             <div className="space-y-1.5">

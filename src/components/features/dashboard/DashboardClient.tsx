@@ -116,14 +116,16 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
           {/* Banner con Fondo Blueprint */}
-          <div className="relative h-64 rounded-xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white shadow-xl border-b-4 border-blue-600">
+          <div className="relative h-72 rounded-xl bg-[#0a2d4d] overflow-hidden flex items-center px-12 text-white shadow-xl border-b-4 border-blue-600">
              {/* Pattern Overlay */}
              <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
              <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '100px 100px' }}></div>
              
-             <div className="relative z-10 space-y-4 max-w-xl">
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase opacity-60">Operaciones DEFLUV SA</p>
-                <h2 className="text-5xl font-black leading-tight tracking-tighter">OPTIMIZACIÓN DE PROCESOS</h2>
+             <div className="relative z-10 space-y-6 max-w-4xl pt-4">
+                <p className="text-[10px] font-black tracking-[0.4em] uppercase opacity-60">SISTEMA DE GESTIÓN DE CALIDAD</p>
+                <h2 className="text-[52px] font-black leading-[0.9] tracking-tighter uppercase">
+                   OPTIMIZACIÓN DE<br />PROCESOS
+                </h2>
                 <div className="flex flex-wrap gap-4 pt-4">
                    <button 
                     onClick={() => setGlobalDocModal({type: 'protocolos', title: 'PROTOCOLOS OPERATIVOS'})}
