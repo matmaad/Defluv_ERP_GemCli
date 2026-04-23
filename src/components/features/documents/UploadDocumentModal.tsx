@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import { X, FileUp, Loader2, CheckCircle2, Calendar } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { X, FileUp, Loader2, CheckCircle2, Calendar, Info } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 import { logAction } from '@/utils/audit-helper'
@@ -10,9 +10,14 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   departments: { id: string; name: string }[]
+  preFill?: {
+    title: string
+    department_id: string
+    master_id?: string
+  } | null
 }
 
-export default function UploadDocumentModal({ isOpen, onClose, departments }: Props) {
+export default function UploadDocumentModal({ isOpen, onClose, departments, preFill }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [file, setFile] = useState<File | null>(null)
@@ -24,6 +29,16 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
   
   const supabase = createClient()
   const router = useRouter()
+
+  useEffect(() => {
+    if (preFill) {
+      setTitle(preFill.title)
+      setDeptId(preFill.department_id)
+    } else {
+      setTitle('')
+      setDeptId('')
+    }
+  }, [preFill, isOpen])
 
   if (!isOpen) return null
 
@@ -61,7 +76,8 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
           file_size: file.size,
           mime_type: file.type,
           current_status: 'Pendiente',
-          due_date: dueDate || null
+          due_date: dueDate || null,
+          master_id: preFill?.master_id || null
         })
         .select()
         .single()
@@ -72,7 +88,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
         'CARGA',
         'document',
         data.id,
-        { title, docType, fileName: file.name },
+        { title, docType, fileName: file.name, master_id: preFill?.master_id },
         `Subida de documento: ${title}`
       )
 
@@ -100,7 +116,7 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
                 <FileUp size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-black uppercase tracking-widest">Subir Nuevo Documento</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest">{preFill ? 'Cumplir Requerimiento' : 'Subir Nuevo Documento'}</h3>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">SGC - Repositorio Central</p>
              </div>
           </div>
@@ -119,12 +135,20 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
           </div>
         ) : (
           <form onSubmit={handleUpload} className="p-8 space-y-5 text-[#0a2d4d]">
+            {preFill && (
+              <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl text-blue-700 text-[10px] font-bold uppercase mb-2">
+                <Info size={16} />
+                <span>Esta carga se asociará automáticamente a la regla maestra activa.</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Título del Documento</label>
                 <input 
                   type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
+                  readOnly={!!preFill}
+                  className={`w-full px-4 py-3 border border-gray-100 rounded-xl outline-none transition-all text-sm font-medium ${preFill ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-zinc-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'}`}
                   placeholder="Ej: Manual de Seguridad Operativa"
                 />
               </div>
@@ -155,7 +179,8 @@ export default function UploadDocumentModal({ isOpen, onClose, departments }: Pr
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento Responsable</label>
                 <select 
                   required value={deptId} onChange={(e) => setDeptId(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black text-[#0a2d4d]"
+                  disabled={!!preFill}
+                  className={`w-full px-4 py-3 border border-gray-100 rounded-xl outline-none transition-all text-sm font-black uppercase ${preFill ? 'bg-gray-100 text-gray-400' : 'bg-gray-50 text-[#0a2d4d] focus:ring-2 focus:ring-blue-500/20'}`}
                 >
                   <option value="">Seleccionar...</option>
                   {departments.map(d => (

@@ -6,12 +6,18 @@ export default async function DocumentosPage() {
 
   // 1. User & Profile
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = await supabase.from('profiles').select('role, department_id').eq('id', user?.id).single()
+  const { data: profile } = await supabase.from('profiles').select('id, role, department_id').eq('id', user?.id).single()
 
-  // 2. Fetch Departments for all filters
+  // 2. Fetch Departments
   const { data: departments } = await supabase.from('departments').select('*').order('name', { ascending: true })
 
-  // 3. Fetch Master Rules (The "Standard")
+  // 3. Fetch User Permissions (To enforce can_edit in UI)
+  const { data: userPermissions } = await supabase
+    .from('permissions')
+    .select('department_id, can_view, can_edit, can_approve')
+    .eq('user_id', user?.id)
+
+  // 4. Fetch Master Rules (The "Standard")
   let masterQuery = supabase.from('document_master_matrix').select(`
     *,
     department:departments (name),
@@ -22,7 +28,7 @@ export default async function DocumentosPage() {
   }
   const { data: masterRules } = await masterQuery
 
-  // 4. Fetch Uploaded Documents (The "History") with Privacy
+  // 5. Fetch Uploaded Documents (The "History")
   let docQuery = supabase.from('documents').select(`
     *,
     uploader:profiles!uploaded_by_user_id (first_name, last_name),
@@ -34,7 +40,7 @@ export default async function DocumentosPage() {
   }
   const { data: documents } = await docQuery.order('created_at', { ascending: false })
 
-  // 5. Profiles for assignment in Admin Panel
+  // 6. Profiles for Admin Panel
   const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name, department_id')
 
   return (
@@ -45,6 +51,7 @@ export default async function DocumentosPage() {
       profiles={(profiles as any) || []}
       userRole={profile?.role || 'regular_user'}
       userDeptId={profile?.department_id || null}
+      userPermissions={userPermissions || []}
     />
   )
 }
