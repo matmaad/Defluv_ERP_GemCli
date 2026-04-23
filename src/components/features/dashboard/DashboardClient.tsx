@@ -213,7 +213,7 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
             <h3 className="text-sm font-black uppercase tracking-widest">Panel de Tareas Activas</h3>
             {(userRole === 'admin' || userRole === 'sub_admin') && (
               <button onClick={() => setIsCreateTaskOpen(true)} className="px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-900 transition-all flex items-center gap-2">
-                <Plus size={16} /> Asignar Tarea
+                <Plus size={16} /> NUEVA TAREA
               </button>
             )}
          </div>
