@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { X, FileUp, Loader2, CheckCircle2, Eye, Download, ShieldCheck } from 'lucide-react'
+import { X, FileUp, Loader2, CheckCircle2, Eye, Download, ShieldCheck, XCircle } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 import { logAction } from '@/utils/audit-helper'
