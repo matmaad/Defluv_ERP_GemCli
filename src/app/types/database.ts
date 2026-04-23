@@ -30,20 +30,31 @@ export interface Department {
 export interface Document {
   id: string;
   title: string;
-  document_type: string; // e.g., 'Protocolo', 'Manual', 'Plano'
-  articulo?: string; // Mandatory for MOP contracts
+  document_type: string;
+  articulo?: string; 
   department_id: string;
-  responsible_user_id: string;
   current_status: DocStatus;
-  uploaded_by_user_id: string;
-  last_modified_at: string;
-  storage_path: string;
-  file_name: string;
-  file_size?: number;
-  mime_type?: string;
-  rejection_comment?: string; // For 'Rechazado' state
-  due_date?: string; // Deadline for upload
+  uploaded_by_user_id: string | null;
+  storage_path: string | null;
+  rejection_comment?: string | null;
+  due_date?: string | null; 
+  master_id?: string | null; // Link to cyclic rule
   created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentMasterMatrix {
+  id: string;
+  title: string;
+  description: string | null;
+  department_id: string;
+  assigned_to_profile_id: string | null;
+  frequency: 'DIARIO' | 'SEMANAL' | 'MENSUAL' | 'ANUAL' | 'UNICA';
+  standard_due_time: string;
+  template_storage_path: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DocumentWithDetails extends Document {
@@ -61,7 +72,7 @@ export interface DocumentVersion {
   document_id: string;
   storage_path: string;
   uploaded_by_user_id: string;
-  reason_for_change: string; // Mandatory justification
+  reason_for_change: string; 
   version_number: number;
   created_at: string;
 }
@@ -82,14 +93,14 @@ export interface Task {
   title: string;
   description?: string;
   assigned_to_user_id: string;
-  requester_id: string; // Sub-Admin or Admin
+  requester_id: string; 
   department_id: string;
   due_date: string;
   status: DocStatus;
   priority: TaskPriority;
   requires_document: boolean;
-  instruction_file_path?: string; // From requester (Template)
-  resolution_file_path?: string; // From assignee (Completed)
+  instruction_file_path?: string; 
+  resolution_file_path?: string; 
   created_at: string;
   updated_at: string;
 }
@@ -97,10 +108,10 @@ export interface Task {
 export interface AuditLog {
   id: string;
   user_id: string;
-  action_type: string; // 'document_upload', 'document_replace', 'permission_change', etc.
-  resource_type: string; // 'document', 'user', 'permission'
+  action_type: string; 
+  resource_type: string; 
   resource_id: string;
-  details: any; // JSON object for diffs
+  details: any; 
   justification?: string;
   timestamp: string;
 }
@@ -109,7 +120,7 @@ export interface KPI {
   id: string;
   kpi_name: string;
   value: number;
-  unit: string; // '%', 'count', etc.
+  unit: string; 
   date_recorded: string;
   created_at: string;
   updated_at: string;
@@ -117,7 +128,7 @@ export interface KPI {
 
 export interface PersonalRecord {
   id: string;
-  user_id?: string; // Link to profile if they are a system user
+  user_id?: string; 
   rut: string;
   first_name: string;
   last_name: string;
