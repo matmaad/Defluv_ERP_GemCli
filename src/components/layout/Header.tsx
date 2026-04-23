@@ -16,23 +16,25 @@ interface Props {
 const routeNames: Record<string, string> = {
   '/dashboard': 'Panel de Control',
   '/documentos': 'Matriz de Documentos',
-  '/personal': 'Gestión de Personal',
+  '/personal': 'REGISTRO DE PERSONAL',
   '/acceso': 'Control de Acceso',
   '/auditoria': 'Registro de Auditoría',
   '/opciones': 'Opciones de Cuenta',
 }
 
+const routeSubtitles: Record<string, string> = {
+  '/dashboard': 'GESTIÓN DE PROCESOS OPERATIVOS',
+  '/documentos': 'GESTIÓN Y CONTROL DE DOCUMENTOS',
+  '/personal': 'CONTROL CENTRALIZADO DE EMPLEADOS',
+  '/acceso': 'GESTIÓN Y CONTROL DE USUARIOS',
+  '/auditoria': 'TRAZABILIDAD TÉCNICA Y CUMPLIMIENTO',
+  '/opciones': 'Configuración de Perfil',
+}
+
 export default function Header({ user }: Props) {
   const pathname = usePathname()
   const title = routeNames[pathname] || 'Sistema de Gestión'
-  
-  // Dynamic subtitle based on route
-  let subtitle = 'Gestión de Procesos Corporativos'
-  if (pathname === '/dashboard') {
-    subtitle = 'GESTIÓN DE PROCESOS OPERATIVOS'
-  } else if (pathname === '/documentos') {
-    subtitle = 'GESTIÓN Y CONTROL DE DOCUMENTOS'
-  }
+  const subtitle = routeSubtitles[pathname] || 'Gestión de Procesos Corporativos'
 
   return (
     <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 shrink-0 z-40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03)]">
