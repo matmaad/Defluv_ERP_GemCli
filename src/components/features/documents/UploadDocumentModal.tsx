@@ -34,9 +34,12 @@ export default function UploadDocumentModal({ isOpen, onClose, departments, preF
     if (preFill) {
       setTitle(preFill.title)
       setDeptId(preFill.department_id)
+      setDocType('Protocolo')
+      setArticulo('Carga Maestro')
     } else {
       setTitle('')
       setDeptId('')
+      setArticulo('')
     }
   }, [preFill, isOpen])
 
@@ -136,107 +139,96 @@ export default function UploadDocumentModal({ isOpen, onClose, departments, preF
         ) : (
           <form onSubmit={handleUpload} className="p-8 space-y-5 text-[#0a2d4d]">
             {preFill && (
-              <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl text-blue-700 text-[10px] font-bold uppercase mb-2">
-                <Info size={16} />
-                <span>Esta carga se asociará automáticamente a la regla maestra activa.</span>
+              <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl space-y-1 mb-4">
+                 <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Requerimiento Activo</p>
+                 <h4 className="text-sm font-black uppercase">{preFill.title}</h4>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Título del Documento</label>
-                <input 
-                  type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
-                  readOnly={!!preFill}
-                  className={`w-full px-4 py-3 border border-gray-100 rounded-xl outline-none transition-all text-sm font-medium ${preFill ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-zinc-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'}`}
-                  placeholder="Ej: Manual de Seguridad Operativa"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Tipo de Documento</label>
-                <select 
-                  value={docType} onChange={(e) => setDocType(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black text-[#0a2d4d]"
-                >
-                  <option>Protocolo</option>
-                  <option>Manual</option>
-                  <option>Plano</option>
-                  <option>Especificación Técnica</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Artículo (MOP/Norma)</label>
-                <input 
-                  type="text" required value={articulo} onChange={(e) => setArticulo(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900 placeholder:text-gray-500"
-                  placeholder="Ej: Art. 4.2.1"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento Responsable</label>
-                <select 
-                  required value={deptId} onChange={(e) => setDeptId(e.target.value)}
-                  disabled={!!preFill}
-                  className={`w-full px-4 py-3 border border-gray-100 rounded-xl outline-none transition-all text-sm font-black uppercase ${preFill ? 'bg-gray-100 text-gray-400' : 'bg-gray-50 text-[#0a2d4d] focus:ring-2 focus:ring-blue-500/20'}`}
-                >
-                  <option value="">Seleccionar...</option>
-                  {departments.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Límite (Opcional)</label>
-                <input 
-                  type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
-                />
-              </div>
-
-              <div className="col-span-2 space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Archivo PDF</label>
-                <div className="relative group">
+            {!preFill ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Título del Documento</label>
                   <input 
-                    type="file" required accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="hidden" id="file-upload"
+                    type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 text-zinc-900 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                    placeholder="Ej: Manual de Seguridad Operativa"
                   />
-                  <label 
-                    htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-[#0a2d4d] group-hover:bg-blue-50 transition-all px-6"
-                  >
-                    <FileUp size={24} className="text-gray-400 group-hover:text-[#0a2d4d] mb-2" />
-                    <span className="text-[10px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest text-center break-all">
-                      {file ? file.name : 'Haz clic para seleccionar PDF'}
-                    </span>
-                    <span className="text-[8px] text-gray-400 mt-1 uppercase tracking-tighter">Máximo 25MB • Formato PDF</span>
-                  </label>
                 </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Tipo de Documento</label>
+                  <select 
+                    value={docType} onChange={(e) => setDocType(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-black text-[#0a2d4d]"
+                  >
+                    <option>Protocolo</option>
+                    <option>Manual</option>
+                    <option>Plano</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Artículo (MOP/Norma)</label>
+                  <input 
+                    type="text" required value={articulo} onChange={(e) => setArticulo(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Departamento</label>
+                  <select 
+                    required value={deptId} onChange={(e) => setDeptId(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 text-[#0a2d4d] border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-black uppercase"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Límite</label>
+                  <input 
+                    type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-zinc-900"
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Archivo PDF de Entrega</label>
+              <div className="relative group">
+                <input 
+                  type="file" required accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="hidden" id="file-upload"
+                />
+                <label 
+                  htmlFor="file-upload"
+                  className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer group-hover:border-[#0a2d4d] group-hover:bg-blue-50 transition-all px-6 text-center"
+                >
+                  <FileUp size={28} className="text-gray-400 group-hover:text-[#0a2d4d] mb-3" />
+                  <span className="text-[11px] font-black text-gray-400 group-hover:text-[#0a2d4d] uppercase tracking-widest break-all px-4">
+                    {file ? file.name : 'Haz clic para seleccionar el archivo PDF'}
+                  </span>
+                  <span className="text-[8px] text-gray-400 mt-2 uppercase tracking-tighter">Formato requerido: PDF • Máximo 25MB</span>
+                </label>
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4 border-t border-gray-100">
+            <div className="flex gap-4 pt-6 border-t border-gray-100">
                <button 
                 type="button" onClick={onClose}
-                className="flex-1 py-3.5 border border-gray-200 rounded-xl text-[10px] font-bold text-gray-400 hover:bg-gray-50 transition-all uppercase tracking-widest"
+                className="flex-1 py-4 border border-gray-200 rounded-xl text-[10px] font-bold text-gray-400 hover:bg-gray-50 transition-all uppercase tracking-widest"
                >
                  Cancelar
                </button>
                <button 
                 type="submit" disabled={loading || !file}
-                className="flex-[2] py-3.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/30 hover:bg-blue-900 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-[2] py-4 bg-[#0a2d4d] text-white rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/30 hover:bg-blue-900 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                >
-                 {loading ? (
-                   <>
-                     <Loader2 size={16} className="animate-spin" />
-                     Subiendo Archivo...
-                   </>
-                 ) : (
-                   'Confirmar y Subir'
-                 )}
+                 {loading ? <Loader2 size={16} className="animate-spin" /> : 'Confirmar y Subir'}
                </button>
             </div>
           </form>
