@@ -25,12 +25,17 @@ const routeNames: Record<string, string> = {
 export default function Header({ user }: Props) {
   const pathname = usePathname()
   const title = routeNames[pathname] || 'Sistema de Gestión'
+  
+  // Specific subtitle for Dashboard as requested
+  const subtitle = pathname === '/dashboard' 
+    ? 'GESTIÓN DE PROCESOS OPERATIVOS' 
+    : 'Gestión de Procesos Corporativos'
 
   return (
-    <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 shrink-0 z-40">
+    <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 shrink-0 z-40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03)]">
       <div className="flex flex-col">
         <h2 className="text-xl font-black text-[#0a2d4d] uppercase tracking-tighter">{title}</h2>
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Gestión de Procesos Corporativos</p>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">{subtitle}</p>
       </div>
 
       <div className="flex items-center gap-6">
