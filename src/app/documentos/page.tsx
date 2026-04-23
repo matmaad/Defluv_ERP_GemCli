@@ -4,43 +4,47 @@ import DocumentMatrixClient from '@/components/features/documents/DocumentMatrix
 export default async function DocumentosPage() {
   const supabase = await createClient()
 
+  // 1. User & Profile
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = await supabase.from('profiles').select('role, department_id').eq('id', user?.id).single()
 
-  // 1. Fetch departments for filters
-  const { data: departments } = await supabase
-    .from('departments')
-    .select('*')
-    .order('name', { ascending: true })
+  // 2. Fetch Departments for all filters
+  const { data: departments } = await supabase.from('departments').select('*').order('name', { ascending: true })
 
-  // 2. Fetch documents with PRIVACY ENFORCEMENT
-  let query = supabase
-    .from('documents')
-    .select(`
-      *,
-      uploader:profiles!uploaded_by_user_id (first_name, last_name),
-      department:departments (name)
-    `)
+  // 3. Fetch Master Rules (The "Standard")
+  let masterQuery = supabase.from('document_master_matrix').select(`
+    *,
+    department:departments (name),
+    responsible:profiles!assigned_to_profile_id (first_name, last_name)
+  `)
+  if (profile?.role === 'regular_user') {
+    masterQuery = masterQuery.eq('department_id', profile.department_id)
+  }
+  const { data: masterRules } = await masterQuery
+
+  // 4. Fetch Uploaded Documents (The "History") with Privacy
+  let docQuery = supabase.from('documents').select(`
+    *,
+    uploader:profiles!uploaded_by_user_id (first_name, last_name),
+    department:departments (name)
+  `)
   
   if (profile?.role === 'regular_user') {
-    // TIER 3: Only see documents from departments where they have 'can_view' permission
-    const { data: allowedDepts } = await supabase
-      .from('permissions')
-      .select('department_id')
-      .eq('user_id', user?.id)
-      .eq('can_view', true)
-    
-    const allowedIds = allowedDepts?.map(p => p.department_id) || []
-    query = query.in('department_id', allowedIds)
+    docQuery = docQuery.eq('department_id', profile.department_id)
   }
+  const { data: documents } = await docQuery.order('created_at', { ascending: false })
 
-  const { data: documents } = await query.order('created_at', { ascending: false })
+  // 5. Profiles for assignment in Admin Panel
+  const { data: profiles } = await supabase.from('profiles').select('id, first_name, last_name, department_id')
 
   return (
     <DocumentMatrixClient 
-      initialDocuments={documents || []} 
+      initialDocuments={(documents as any) || []} 
+      masterRules={(masterRules as any) || []}
       departments={departments || []}
+      profiles={(profiles as any) || []}
       userRole={profile?.role || 'regular_user'}
+      userDeptId={profile?.department_id || null}
     />
   )
 }
