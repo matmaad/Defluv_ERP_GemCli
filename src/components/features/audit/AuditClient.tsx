@@ -67,7 +67,7 @@ export default function AuditClient({ initialLogs, profiles, userRole }: Props) 
   const [selectedDocData, setSelectedDocData] = useState<Document | null>(null)
   const [activeTab, setActiveTab] = useState<'bitacora' | 'historial'>('bitacora')
   const [isManageModalOpen, setIsManageModalOpen] = useState(false)
-  const [managingLog, setManagingLog] = useState<AuditLogWithDetails | null>(null)
+  const [managingLog, setManagingLog] = useState<{ id: string, action_type: string, user_name: string } | null>(null)
   
   const [messages, setMessages] = useState<Message[]>([
     { role: 'bot', text: 'Bienvenido al asistente de auditoría. ¿En qué puedo ayudarte con este registro?', timestamp: new Date().toLocaleTimeString() }
