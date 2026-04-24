@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import AuditClient from '@/components/features/audit/AuditClient'
+import { Profile, AuditLog } from '@/app/types/database'
 
 function AuditSkeleton() {
   return (
@@ -14,7 +15,15 @@ function AuditSkeleton() {
   )
 }
 
-async function AuditDataLayer({ profile }: { profile: any }) {
+interface AuditLogWithUser extends AuditLog {
+  user: {
+    first_name: string;
+    last_name: string;
+    department_id: string | null;
+  } | null;
+}
+
+async function AuditDataLayer({ profile }: { profile: Pick<Profile, 'role' | 'department_id'> | null }) {
   const supabase = await createClient()
 
   const [profilesResult, logsResult] = await Promise.all([
@@ -24,10 +33,12 @@ async function AuditDataLayer({ profile }: { profile: any }) {
       : supabase.from('audit_logs').select(`*, user:profiles!user_id (first_name, last_name, department_id)`).order('timestamp', { ascending: false }).limit(500)
   ])
 
+  const initialLogs = (logsResult.data as unknown as AuditLogWithUser[]) || []
+
   return (
     <AuditClient 
-      initialLogs={(logsResult.data as any) || []} 
-      profiles={profilesResult.data || []}
+      initialLogs={initialLogs} 
+      profiles={(profilesResult.data as { id: string; first_name: string; last_name: string }[]) || []}
       userRole={profile?.role || 'regular_user'}
     />
   )
@@ -42,7 +53,7 @@ export default async function AuditoriaPage() {
   return (
     <div className="min-h-full bg-gray-50 pt-8">
       <Suspense fallback={<AuditSkeleton />}>
-        <AuditDataLayer profile={profile} />
+        <AuditDataLayer profile={profile as Pick<Profile, 'role' | 'department_id'> | null} />
       </Suspense>
     </div>
   )

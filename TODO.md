@@ -64,9 +64,20 @@
     - [ ] **Gestión de No Conformidades (Auditoría)**
         - [ ] Vincular Modal de Gestión con base de datos (Supabase).
         - [ ] Implementar persistencia y carga real en el Historial de No Conformidades.
-        - [ ] Añadir campos de texto adicionales y lógica de guardado en `ManageIncidenceModal`.
+        - [ ] Añadir campos de texto adicionales y lógica de guardado en `ManageIncidenceModal.tsx`.
 
----
-**PROYECTO LISTO PARA PRODUCCIÓN** 🚀
+    ## 🛠️ Fase 7: Infraestructura y Escalabilidad (Propuesto)
+    - [ ] **Implementación de PWA (Progressive Web App)**
+    - [ ] Configurar manifest y service workers para instalación móvil y soporte offline básico.
+    - [ ] **Generación de Reportes en PDF**
+    - [ ] Implementar exportación formal de registros de auditoría y documentos en formato PDF corporativo.
+    - [ ] **Sistema de Presencia en Tiempo Real**
+    - [ ] Integrar Supabase Presence para visualizar usuarios activos y evitar colisiones de edición.
+    - [ ] **Suite de Pruebas Automatizadas**
+    - [ ] Configurar Vitest para pruebas unitarias y Playwright para flujos críticos (E2E).
+
+    ---
+    **PROYECTO LISTO PARA PRODUCCIÓN** 🚀
+
 
 > **Nota de Calidad Final:** Al finalizar todo el proyecto y lanzar la versión final, realizaremos una auditoría técnica exhaustiva de "pies a cabeza" en GitHub, Vercel y Supabase. El objetivo es identificar inconsistencias, depurar el código, optimizar tiempos de carga y resolver cualquier brecha de seguridad para garantizar la máxima eficiencia del sistema.
