@@ -14,6 +14,8 @@ interface Props {
   task: Task | null
 }
 
+import { logAction } from '@/utils/audit-helper'
+
 export default function EditTaskModal({ isOpen, onClose, departments, users, task }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -72,6 +74,15 @@ export default function EditTaskModal({ isOpen, onClose, departments, users, tas
         .eq('id', task.id)
 
       if (error) throw error
+
+      await logAction(
+        'EDICIÓN TAREA',
+        'Tareas',
+        task.id,
+        { title, priority, assignedTo },
+        `Se modificó la tarea: ${title}`
+      )
+
       setSuccess(true)
       setTimeout(() => { setSuccess(false); onClose(); router.refresh() }, 2000)
     } catch (error: any) {

@@ -49,6 +49,13 @@ const metricConfig: Record<string, any> = {
   'Documentos Totales': { icon: FileCheck, color: 'text-green-600', bg: 'bg-green-50' },
 }
 
+const priorityStyles: Record<string, string> = {
+  'Baja': 'bg-gray-100 text-gray-600 border-gray-200',
+  'Estándar': 'bg-green-100 text-green-700 border-green-200',
+  'Urgente': 'bg-orange-100 text-orange-700 border-orange-200',
+  'Crítico': 'bg-red-100 text-red-700 border-red-200',
+}
+
 const formatDateChile = (dateString: string | null | undefined) => {
   if (!dateString) return ''
   const date = new Date(dateString)
@@ -99,8 +106,11 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
     if (!confirm(`¿Está seguro de eliminar la tarea "${title}"?`)) return
     setDeletingId(id)
     const { error } = await supabase.from('tasks').delete().eq('id', id)
-    if (!error) router.refresh()
-    else alert('Error al eliminar.')
+    if (!error) {
+      router.refresh()
+    } else {
+      alert('Error al eliminar.')
+    }
     setDeletingId(null)
   }
 
@@ -127,7 +137,7 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                    </button>
                    <button 
                     onClick={() => setGlobalDocModal({type: 'iso', title: 'NORMA ISO 2026'})}
-                    className="px-6 md:px-8 py-2.5 md:py-3 bg-transparent border-2 border-white/30 text-white rounded-xl text-[9px] md:text-[10px] font-black hover:bg-white/10 transition-all uppercase tracking-widest flex items-center gap-2"
+                    className="px-6 md:md:px-8 py-2.5 md:py-3 bg-transparent border-2 border-white/30 text-white rounded-xl text-[9px] md:text-[10px] font-black hover:bg-white/10 transition-all uppercase tracking-widest flex items-center gap-2"
                    >
                      <FileText size={14} /> Norma ISO 2026
                    </button>
@@ -205,7 +215,7 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
             <div className="overflow-x-auto">
                <table className="w-full text-left border-collapse min-w-[1000px]">
                   <thead>
-                     <tr className="bg-gray-50/50 border-b border-gray-200">
+                     <tr className="bg-gray-50/50 border-b border-gray-100">
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarea / Descripción</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Departamento</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Plazo Límite</th>
@@ -221,34 +231,37 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                           <td className="px-8 py-6">
                              <p className="text-xs font-black uppercase">{t.title}</p>
                              <p className="text-[9px] text-gray-400 font-bold uppercase mt-1 truncate max-w-[250px]">{t.description || 'Sin descripción'}</p>
-                          </td>
-                          <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{t.department?.name || 'S/D'}</td>
-                          <td className="px-8 py-6 text-center">
-                             <p className="text-xs font-black tabular-nums">{formatDateChile(t.due_date)}</p>
-                             {t.due_date && <p className="text-[9px] text-gray-400 font-bold tabular-nums uppercase">{t.due_date.split('T')[1]?.substring(0,5) || '18:00'} HRS</p>}
-                          </td>
-                          <td className="px-8 py-6 text-center"><span className="px-3 py-1 rounded-full text-[8px] font-black text-white tracking-widest bg-blue-600 uppercase">{t.priority}</span></td>
-                          <td className="px-8 py-6 text-center">
-                             <button onClick={() => t.instruction_file_path && handleDownload(t.instruction_file_path, 'Plantilla.pdf', t.id)} disabled={!t.instruction_file_path} className={`p-2 rounded-lg border transition-all ${t.instruction_file_path ? 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white' : 'bg-gray-50 text-gray-200 border-gray-100 cursor-not-allowed'}`}><Eye size={16} /></button>
-                          </td>
-                          <td className="px-8 py-6 text-center">
-                             <button onClick={() => { if (t.resolution_file_path) handleDownload(t.resolution_file_path, 'Respuesta.pdf', t.id); else if (t.assigned_to_user_id === userId || userRole === 'admin') setUploadResTask({id: t.id, title: t.title}) }} disabled={!t.resolution_file_path && t.assigned_to_user_id !== userId && userRole !== 'admin'} className={`p-2 rounded-lg border transition-all ${t.resolution_file_path ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-300 border-gray-100'}`}><FileUp size={16} /></button>
-                          </td>
-                          <td className="px-8 py-6 text-right">
-                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {userRole === 'admin' && (
-                                  <>
-                                    <button onClick={() => setEditModalTask(t)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit3 size={16} /></button>
-                                    <button onClick={() => handleDeleteTask(t.id, t.title)} disabled={deletingId === t.id} className="p-1 text-red-600 hover:bg-red-50 rounded">{deletingId === t.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}</button>
-                                  </>
-                                )}
-                             </div>
-                          </td>
-                       </tr>
-                     ))}
-                  </tbody>
-               </table>
-            </div>
+                       </td>
+                       <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{t.department?.name || 'S/D'}</td>
+                       <td className="px-8 py-6 text-center">
+                          <p className="text-xs font-black tabular-nums">{formatDateChile(t.due_date)}</p>
+                          {t.due_date && <p className="text-[9px] text-gray-400 font-bold tabular-nums uppercase">{t.due_date.split('T')[1]?.substring(0,5) || '18:00'} HRS</p>}
+                       </td>
+                       <td className="px-8 py-6 text-center">
+                          <span className={`px-3 py-1 rounded-full text-[8px] font-black tracking-widest border uppercase ${priorityStyles[t.priority] || 'bg-gray-50 text-gray-400'}`}>
+                             {t.priority}
+                          </span>
+                       </td>
+                       <td className="px-8 py-6 text-center">
+                          <button onClick={() => t.instruction_file_path && handleDownload(t.instruction_file_path, 'Plantilla.pdf', t.id)} disabled={!t.instruction_file_path} className={`p-2 rounded-lg border transition-all ${t.instruction_file_path ? 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white' : 'bg-gray-50 text-gray-200 border-gray-100 cursor-not-allowed'}`}><Eye size={16} /></button>
+                       </td>
+                       <td className="px-8 py-6 text-center">
+                          <button onClick={() => { if (t.resolution_file_path) handleDownload(t.resolution_file_path, 'Respuesta.pdf', t.id); else if (t.assigned_to_user_id === userId || userRole === 'admin') setUploadResTask({id: t.id, title: t.title}) }} disabled={!t.resolution_file_path && t.assigned_to_user_id !== userId && userRole !== 'admin'} className={`p-2 rounded-lg border transition-all ${t.resolution_file_path ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-300 border-gray-100'}`}><FileUp size={16} /></button>
+                       </td>
+                       <td className="px-8 py-6 text-right">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                             {userRole === 'admin' && (
+                               <>
+                                 <button onClick={() => setEditModalTask(t)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit3 size={16} /></button>
+                                 <button onClick={() => handleDeleteTask(t.id, t.title)} disabled={deletingId === t.id} className="p-1 text-red-600 hover:bg-red-50 rounded">{deletingId === t.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}</button>
+                               </>
+                             )}
+                          </div>
+                       </td>
+                    </tr>
+                  ))}
+               </tbody>
+            </table>
          </div>
       </div>
 
