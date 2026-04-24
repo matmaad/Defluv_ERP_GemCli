@@ -45,12 +45,17 @@ export default function DefluvotClient({ userName }: Props) {
     setLoading(true)
 
     try {
-      // General ERP assistant logic (using the existing AI action but with general prompt)
-      const response = await analyzeDocument(null, 'Consulta General ERP', currentInput)
+      // Map local history to Gemini format
+      const history = messages.slice(1).map(m => ({
+        role: (m.role === 'bot' ? 'model' : 'user') as 'model' | 'user',
+        parts: [{ text: m.text }]
+      }))
+
+      const response = await analyzeDocument(null, 'Consulta General ERP', currentInput, history)
       
       const botMsg: Message = { 
         role: 'bot', 
-        text: response.text || response.error || 'Lo siento, no pude procesar tu solicitud en este momento.', 
+        text: response.text || response.error || 'No pude procesar tu solicitud.', 
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
       }
       setMessages(prev => [...prev, botMsg])
