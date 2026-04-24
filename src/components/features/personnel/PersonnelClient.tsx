@@ -25,8 +25,10 @@ import { useRouter } from 'next/navigation'
 import { logAction } from '@/utils/audit-helper'
 
 interface Props {
-  records: PersonalRecord[]
+  initialRecords: PersonalRecord[]
+  departments: Department[]
   userRole: string
+  userDeptId: string | null
 }
 
 const statusStyles: Record<string, string> = {
@@ -46,7 +48,7 @@ const formatDateChile = (dateString: string | null | undefined) => {
   return `${day}/${month}/${year}`
 }
 
-export default function PersonnelClient({ records, userRole }: Props) {
+export default function PersonnelClient({ initialRecords: records, departments, userRole, userDeptId }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [uploadModalDoc, setUploadModalDoc] = useState<{id: string, name: string} | null>(null)
   const [viewDocsModal, setViewDocsModal] = useState<PersonalRecord | null>(null)
