@@ -105,7 +105,7 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
   }
 
   return (
-    <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto text-[#0a2d4d] font-sans">
+    <div className="flex-1 p-4 md:p-8 space-y-8 bg-gray-50 overflow-y-auto text-[#0a2d4d] font-sans">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
           {/* Banner Responsivo con Fondo Blueprint */}
@@ -146,14 +146,14 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                    </select>
                 </div>
              </div>
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 {kpis.map((kpi, idx) => {
                   const config = metricConfig[kpi.kpi_name] || { icon: FileCheck, color: 'text-gray-600', bg: 'bg-gray-50' }
                   return (
-                    <div key={idx} className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                    <div key={idx} className="p-4 md:p-6 bg-white rounded-xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                        <div className="flex justify-between items-start mb-4"><div className={`p-2 rounded-xl ${config.bg}`}><config.icon className={config.color} size={24} /></div></div>
-                       <p className="text-4xl font-black mb-1 tabular-nums">{kpi.value}{kpi.unit}</p>
-                       <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">{kpi.kpi_name}</p>
+                       <p className="text-2xl md:text-4xl font-black mb-1 tabular-nums">{kpi.value}{kpi.unit}</p>
+                       <p className="text-[8px] md:text-[10px] font-bold text-gray-400 tracking-widest uppercase">{kpi.kpi_name}</p>
                     </div>
                   )
                 })}
@@ -162,7 +162,7 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
         </div>
 
         <div className="space-y-8">
-           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 space-y-6 flex flex-col h-full">
+           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-6 flex flex-col h-full">
               <div className="flex justify-between items-center border-b border-gray-100 pb-4">
                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">PRÓXIMOS VENCIMIENTOS</h3>
                  <Clock size={16} className="text-gray-400" />
@@ -171,12 +171,12 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                  {deadlines.map((d, idx) => (
                    <div key={idx} className="flex gap-4 group cursor-pointer" onClick={() => router.push('/documentos')}>
                       <div className="w-1 rounded-full bg-blue-100 group-hover:bg-blue-600 transition-all"></div>
-                      <div className="flex-1 bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-gray-100">
+                      <div className="flex-1 bg-gray-50 rounded-xl p-3 md:p-4 flex items-center justify-between hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-gray-100">
                          <div className="overflow-hidden mr-2">
-                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest truncate">{d.type}</p>
-                            <p className="text-xs font-bold uppercase truncate" title={d.name}>{d.name}</p>
+                            <p className="text-[7px] md:text-[8px] font-black text-gray-400 uppercase tracking-widest truncate">{d.type}</p>
+                            <p className="text-[10px] md:text-xs font-bold uppercase truncate" title={d.name}>{d.name}</p>
                          </div>
-                         <div className="text-right flex-shrink-0"><span className="px-2 py-1 rounded-md text-[8px] font-black text-[#0a2d4d] uppercase bg-white border border-gray-100">{formatDateChile(d.due_date)}</span></div>
+                         <div className="text-right flex-shrink-0"><span className="px-2 py-1 rounded-md text-[7px] md:text-[8px] font-black text-[#0a2d4d] uppercase bg-white border border-gray-100">{formatDateChile(d.due_date)}</span></div>
                       </div>
                    </div>
                  ))}
@@ -196,57 +196,59 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
          <div className="flex justify-between items-end px-1">
             <h3 className="text-sm font-black uppercase tracking-widest">Panel de Tareas Activas</h3>
             {(userRole === 'admin' || userRole === 'sub_admin') && (
-              <button onClick={() => setIsCreateTaskOpen(true)} className="px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-900 transition-all flex items-center gap-2">
+              <button onClick={() => setIsCreateTaskOpen(true)} className="px-4 md:px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-[9px] md:text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-900 transition-all flex items-center gap-2">
                 <Plus size={16} /> NUEVA TAREA
               </button>
             )}
          </div>
          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full text-left border-collapse min-w-[1100px]">
-               <thead className="bg-gray-50 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  <tr>
-                     <th className="px-8 py-5">Tarea / Descripción</th>
-                     <th className="px-8 py-5">Departamento</th>
-                     <th className="px-8 py-5 text-center">Plazo Límite</th>
-                     <th className="px-8 py-5 text-center">Prioridad</th>
-                     <th className="px-8 py-5 text-center">Plantilla</th>
-                     <th className="px-8 py-5 text-center">Respuesta</th>
-                     <th className="px-8 py-5 text-right">Acciones</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-gray-50 font-medium">
-                  {tasks.map((t, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50/30 transition-colors group text-[#0a2d4d]">
-                       <td className="px-8 py-6">
-                          <p className="text-xs font-black uppercase">{t.title}</p>
-                          <p className="text-[9px] text-gray-400 font-bold uppercase mt-1 truncate max-w-[250px]">{t.description || 'Sin descripción'}</p>
-                       </td>
-                       <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{t.department?.name || 'S/D'}</td>
-                       <td className="px-8 py-6 text-center">
-                          <p className="text-xs font-black tabular-nums">{formatDateChile(t.due_date)}</p>
-                          {t.due_date && <p className="text-[9px] text-gray-400 font-bold tabular-nums uppercase">{t.due_date.split('T')[1]?.substring(0,5) || '18:00'} HRS</p>}
-                       </td>
-                       <td className="px-8 py-6 text-center"><span className="px-3 py-1 rounded-full text-[8px] font-black text-white tracking-widest bg-blue-600 uppercase">{t.priority}</span></td>
-                       <td className="px-8 py-6 text-center">
-                          <button onClick={() => t.instruction_file_path && handleDownload(t.instruction_file_path, 'Plantilla.pdf', t.id)} disabled={!t.instruction_file_path} className={`p-2 rounded-lg border transition-all ${t.instruction_file_path ? 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white' : 'bg-gray-50 text-gray-200 border-gray-100 cursor-not-allowed'}`}><Eye size={16} /></button>
-                       </td>
-                       <td className="px-8 py-6 text-center">
-                          <button onClick={() => { if (t.resolution_file_path) handleDownload(t.resolution_file_path, 'Respuesta.pdf', t.id); else if (t.assigned_to_user_id === userId || userRole === 'admin') setUploadResTask({id: t.id, title: t.title}) }} disabled={!t.resolution_file_path && t.assigned_to_user_id !== userId && userRole !== 'admin'} className={`p-2 rounded-lg border transition-all ${t.resolution_file_path ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-300 border-gray-100'}`}><FileUp size={16} /></button>
-                       </td>
-                       <td className="px-8 py-6 text-right">
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                             {userRole === 'admin' && (
-                               <>
-                                 <button onClick={() => setEditModalTask(t)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit3 size={16} /></button>
-                                 <button onClick={() => handleDeleteTask(t.id, t.title)} disabled={deletingId === t.id} className="p-1 text-red-600 hover:bg-red-50 rounded">{deletingId === t.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}</button>
-                               </>
-                             )}
-                          </div>
-                       </td>
-                    </tr>
-                  ))}
-               </tbody>
-            </table>
+            <div className="overflow-x-auto">
+               <table className="w-full text-left border-collapse min-w-[1000px]">
+                  <thead>
+                     <tr className="bg-gray-50/50 border-b border-gray-200">
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarea / Descripción</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Departamento</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Plazo Límite</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Prioridad</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Plantilla</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Respuesta</th>
+                        <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Acciones</th>
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 font-medium text-[#0a2d4d]">
+                     {tasks.map((t, idx) => (
+                       <tr key={idx} className="hover:bg-gray-50/30 transition-colors group">
+                          <td className="px-8 py-6">
+                             <p className="text-xs font-black uppercase">{t.title}</p>
+                             <p className="text-[9px] text-gray-400 font-bold uppercase mt-1 truncate max-w-[250px]">{t.description || 'Sin descripción'}</p>
+                          </td>
+                          <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{t.department?.name || 'S/D'}</td>
+                          <td className="px-8 py-6 text-center">
+                             <p className="text-xs font-black tabular-nums">{formatDateChile(t.due_date)}</p>
+                             {t.due_date && <p className="text-[9px] text-gray-400 font-bold tabular-nums uppercase">{t.due_date.split('T')[1]?.substring(0,5) || '18:00'} HRS</p>}
+                          </td>
+                          <td className="px-8 py-6 text-center"><span className="px-3 py-1 rounded-full text-[8px] font-black text-white tracking-widest bg-blue-600 uppercase">{t.priority}</span></td>
+                          <td className="px-8 py-6 text-center">
+                             <button onClick={() => t.instruction_file_path && handleDownload(t.instruction_file_path, 'Plantilla.pdf', t.id)} disabled={!t.instruction_file_path} className={`p-2 rounded-lg border transition-all ${t.instruction_file_path ? 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white' : 'bg-gray-50 text-gray-200 border-gray-100 cursor-not-allowed'}`}><Eye size={16} /></button>
+                          </td>
+                          <td className="px-8 py-6 text-center">
+                             <button onClick={() => { if (t.resolution_file_path) handleDownload(t.resolution_file_path, 'Respuesta.pdf', t.id); else if (t.assigned_to_user_id === userId || userRole === 'admin') setUploadResTask({id: t.id, title: t.title}) }} disabled={!t.resolution_file_path && t.assigned_to_user_id !== userId && userRole !== 'admin'} className={`p-2 rounded-lg border transition-all ${t.resolution_file_path ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-300 border-gray-100'}`}><FileUp size={16} /></button>
+                          </td>
+                          <td className="px-8 py-6 text-right">
+                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {userRole === 'admin' && (
+                                  <>
+                                    <button onClick={() => setEditModalTask(t)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit3 size={16} /></button>
+                                    <button onClick={() => handleDeleteTask(t.id, t.title)} disabled={deletingId === t.id} className="p-1 text-red-600 hover:bg-red-50 rounded">{deletingId === t.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}</button>
+                                  </>
+                                )}
+                             </div>
+                          </td>
+                       </tr>
+                     ))}
+                  </tbody>
+               </table>
+            </div>
          </div>
       </div>
 
