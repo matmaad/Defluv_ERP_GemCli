@@ -1,4 +1,4 @@
-# 📋 DEFLUV ERP - Full Development Roadmap (COMPLETED)
+# 📋 DEFLUV ERP - Full Development Roadmap (IN PROGRESS)
 
 ## 🚀 Fase 1: Infraestructura y Autenticación (Completado)
 - [x] **Configuración de Autenticación Supabase**
@@ -62,22 +62,32 @@
     - [ ] Corregir y validar sistema de envío de correos (Resend) al asignar tareas a responsables (Implementación actual deficiente).
     - [ ] Mejorar interacción y entrenamiento de bot DEFLUVOT.
     - [ ] **Gestión de No Conformidades (Auditoría)**
+        - [x] Corregir errores de hidratación en tablas de Auditoría.
+        - [x] Eliminar 'any' en `AuditoriaPage` y componentes relacionados para mejorar estabilidad.
         - [ ] Vincular Modal de Gestión con base de datos (Supabase).
         - [ ] Implementar persistencia y carga real en el Historial de No Conformidades.
         - [ ] Añadir campos de texto adicionales y lógica de guardado en `ManageIncidenceModal.tsx`.
 
-    ## 🛠️ Fase 7: Infraestructura y Escalabilidad (Propuesto)
-    - [ ] **Implementación de PWA (Progressive Web App)**
-    - [ ] Configurar manifest y service workers para instalación móvil y soporte offline básico.
-    - [ ] **Generación de Reportes en PDF**
-    - [ ] Implementar exportación formal de registros de auditoría y documentos en formato PDF corporativo.
-    - [ ] **Sistema de Presencia en Tiempo Real**
-    - [ ] Integrar Supabase Presence para visualizar usuarios activos y evitar colisiones de edición.
-    - [ ] **Suite de Pruebas Automatizadas**
-    - [ ] Configurar Vitest para pruebas unitarias y Playwright para flujos críticos (E2E).
+## 🛠️ Fase 7: Infraestructura y Escalabilidad (Propuesto)
+- [ ] **Implementación de PWA (Progressive Web App)**
+- [ ] Configurar manifest y service workers para instalación móvil y soporte offline básico.
+- [ ] **Generación de Reportes en PDF**
+- [ ] Implementar exportación formal de registros de auditoría y documentos en formato PDF corporativo.
+- [ ] **Sistema de Presencia en Tiempo Real**
+- [ ] Integrar Supabase Presence para visualizar usuarios activos y evitar colisiones de edición.
+- [ ] **Suite de Pruebas Automatizadas**
+- [ ] Configurar Vitest para pruebas unitarias y Playwright para flujos críticos (E2E).
 
-    ---
-    **PROYECTO LISTO PARA PRODUCCIÓN** 🚀
+## 💬 Fase 8: Comunicación en Tiempo Real (Propuesto)
+- [ ] **Implementación de Chat en Vivo Interno**
+    - [ ] Crear tabla `chat_messages` en Supabase con RLS (authenticated access only).
+    - [ ] Implementar suscripciones de Realtime para mensajería instantánea.
+    - [ ] Crear componente `ChatWidget.tsx` persistente en `layout.tsx`.
+    - [ ] Optimizar con `next/dynamic` para asegurar navegación fluida sin lag.
+    - [ ] Soporte para canales por departamento y notificaciones de mensajes nuevos.
+
+---
+**PROYECTO EN FASE DE REFINAMIENTO** 🚀
 
 
 > **Nota de Calidad Final:** Al finalizar todo el proyecto y lanzar la versión final, realizaremos una auditoría técnica exhaustiva de "pies a cabeza" en GitHub, Vercel y Supabase. El objetivo es identificar inconsistencias, depurar el código, optimizar tiempos de carga y resolver cualquier brecha de seguridad para garantizar la máxima eficiencia del sistema.
