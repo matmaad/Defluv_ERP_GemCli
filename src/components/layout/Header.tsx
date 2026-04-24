@@ -7,12 +7,7 @@ import Link from 'next/link'
 import { createClient } from '@/utils/supabase/cliente'
 
 interface Props {
-  user: {
-    first_name: string
-    last_name: string
-    role: string
-    department_id?: string | null
-  } | null
+  user: any
   onMenuClick?: () => void
 }
 
@@ -41,10 +36,24 @@ export default function Header({ user, onMenuClick }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   
   const title = routeNames[pathname] || 'Sistema de Gestión'
   const subtitle = routeSubtitles[pathname] || 'Gestión de Procesos Corporativos'
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user?.id) return
+      const { data } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, role')
+        .eq('id', user.id)
+        .single()
+      if (data) setProfile(data)
+    }
+    loadProfile()
+  }, [user?.id])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -98,15 +107,15 @@ export default function Header({ user, onMenuClick }: Props) {
           >
             <div className="text-right hidden sm:block">
               <p className="text-xs font-black uppercase tracking-tight">
-                {user ? `${user.first_name} ${user.last_name}` : 'Invitado'}
+                {profile ? `${profile.first_name} ${profile.last_name}` : 'Cargando...'}
               </p>
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">
-                {user?.role === 'admin' ? 'ADMINISTRADOR GENERAL' : user?.role?.toUpperCase().replace('_', ' ') || 'USUARIO'}
+                {profile?.role === 'admin' ? 'ADMINISTRADOR GENERAL' : profile?.role?.toUpperCase().replace('_', ' ') || 'USUARIO'}
               </p>
             </div>
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#0a2d4d] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-900/20 border-2 border-white overflow-hidden transition-transform active:scale-95">
-              {user ? (
-                 <img src={`https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=0a2d4d&color=fff`} alt="Avatar" />
+              {profile ? (
+                 <img src={`https://ui-avatars.com/api/?name=${profile.first_name}+${profile.last_name}&background=0a2d4d&color=fff`} alt="Avatar" />
               ) : (
                  <User size={20} />
               )}
@@ -116,8 +125,8 @@ export default function Header({ user, onMenuClick }: Props) {
             {showProfileMenu && (
               <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 animate-in fade-in slide-in-from-top-2 duration-200 z-[100]">
                  <div className="px-4 py-3 border-b border-gray-50 mb-1 sm:hidden">
-                    <p className="text-[10px] font-black uppercase text-[#0a2d4d]">{user?.first_name} {user?.last_name}</p>
-                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">{user?.role.replace('_', ' ')}</p>
+                    <p className="text-[10px] font-black uppercase text-[#0a2d4d]">{profile?.first_name} {profile?.last_name}</p>
+                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">{profile?.role.replace('_', ' ')}</p>
                  </div>
                  <Link 
                   href="/opciones"

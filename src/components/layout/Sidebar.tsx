@@ -31,7 +31,15 @@ interface Props {
 
 export default function Sidebar({ isOpen, onClose }: Props) {
   const pathname = usePathname()
+  const [optimisticPath, setOptimisticPath] = React.useState<string | null>(null)
   const supabase = createClient()
+
+  // Sync optimistic path with real pathname when navigation completes
+  React.useEffect(() => {
+    setOptimisticPath(null)
+  }, [pathname])
+
+  const currentPath = optimisticPath || pathname
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -66,12 +74,15 @@ export default function Sidebar({ isOpen, onClose }: Props) {
       {/* Main Navigation */}
       <nav className="flex-1 px-4 space-y-3 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = currentPath === item.href
           return (
             <Link
               key={item.name}
               href={item.href}
-              onClick={() => { if (window.innerWidth < 1024) onClose() }}
+              onClick={() => { 
+                setOptimisticPath(item.href)
+                if (window.innerWidth < 1024) onClose() 
+              }}
               className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all group ${
                 isActive 
                   ? 'bg-[#155DFC] shadow-lg text-white' 
@@ -89,23 +100,29 @@ export default function Sidebar({ isOpen, onClose }: Props) {
       <div className="px-4 py-6 border-t border-white/10 space-y-1">
         <Link
           href="/defluvot"
-          onClick={() => { if (window.innerWidth < 1024) onClose() }}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${pathname === '/defluvot' ? 'bg-[#155DFC] text-white shadow-lg' : 'text-green-400 hover:bg-white/10'}`}
+          onClick={() => { 
+            setOptimisticPath('/defluvot')
+            if (window.innerWidth < 1024) onClose() 
+          }}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${currentPath === '/defluvot' ? 'bg-[#155DFC] text-white shadow-lg' : 'text-green-400 hover:bg-white/10'}`}
         >
-          <Bot size={20} className={`${pathname === '/defluvot' ? 'text-white' : 'text-green-400'} group-hover:scale-110 transition-transform`} />
-          <span className={`text-[10px] font-bold uppercase tracking-widest ${pathname === '/defluvot' ? 'text-white' : 'text-green-400'}`}>DEFLUVOT (IA)</span>
+          <Bot size={20} className={`${currentPath === '/defluvot' ? 'text-white' : 'text-green-400'} group-hover:scale-110 transition-transform`} />
+          <span className={`text-[10px] font-bold uppercase tracking-widest ${currentPath === '/defluvot' ? 'text-white' : 'text-green-400'}`}>DEFLUVOT (IA)</span>
         </Link>
         <Link
           href="/opciones"
-          onClick={() => { if (window.innerWidth < 1024) onClose() }}
+          onClick={() => { 
+            setOptimisticPath('/opciones')
+            if (window.innerWidth < 1024) onClose() 
+          }}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-            pathname === '/opciones' 
+            currentPath === '/opciones' 
               ? 'bg-[#155DFC] text-white shadow-lg' 
               : 'text-[#BEDBFF] hover:bg-[#0F3271] hover:text-white'
           }`}
         >
-          <Settings size={20} className={pathname === '/opciones' ? 'text-white' : 'text-[#50A2FF]'} />
-          <span className={`text-[10px] font-bold uppercase tracking-widest ${pathname === '/opciones' ? 'text-white' : 'text-[#BEDBFF]'}`}>Opciones</span>
+          <Settings size={20} className={currentPath === '/opciones' ? 'text-white' : 'text-[#50A2FF]'} />
+          <span className={`text-[10px] font-bold uppercase tracking-widest ${currentPath === '/opciones' ? 'text-white' : 'text-[#BEDBFF]'}`}>Opciones</span>
         </Link>
         <button 
           onClick={handleLogout}

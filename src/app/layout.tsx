@@ -22,21 +22,11 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
-  let profile = null
-  if (user) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('first_name, last_name, role')
-      .eq('id', user.id)
-      .single()
-    profile = data
-  }
-
   return (
     <html lang="es" className="h-full">
       <body className={`${inter.className} bg-gray-50 h-full overflow-hidden`}>
         {user ? (
-          <SidebarWrapper user={profile}>
+          <SidebarWrapper user={user}>
             {children}
           </SidebarWrapper>
         ) : (
