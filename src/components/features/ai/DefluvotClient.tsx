@@ -2,7 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Bot, Send, User, Loader2, Sparkles, ShieldCheck, Zap } from 'lucide-react'
-import { analyzeDocument } from '@/app/actions/ai-actions'
+import { analyzeDocument, warmUpAI } from '@/app/actions/ai-actions'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Message {
   role: 'bot' | 'user'
@@ -19,29 +21,48 @@ export default function DefluvotClient({ userName }: Props) {
     { 
       role: 'bot', 
       text: '¡Hola! Soy DEFLUVOT, tu asistente inteligente de gestión de calidad. ¿En qué puedo ayudarte hoy?', 
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      timestamp: '' 
     }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isWarmingUp, setIsWarmingUp] = useState(true)
   const chatEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    // Set initial timestamp on mount to avoid hydration mismatch
+    setMessages(prev => [
+      { 
+        ...prev[0], 
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      }
+    ])
+
+    // Warm up the AI instance on load
+    const warmUp = async () => {
+      await warmUpAI()
+      setIsWarmingUp(false)
+    }
+    warmUp()
+  }, [])
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || loading) return
+  const handleSendMessage = async (e?: React.FormEvent, directText?: string) => {
+    if (e) e.preventDefault()
+    
+    const messageText = directText || input
+    if (!messageText.trim() || loading) return
 
     const userMsg: Message = { 
       role: 'user', 
-      text: input, 
+      text: messageText, 
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     }
     setMessages(prev => [...prev, userMsg])
-    const currentInput = input
-    setInput('')
+    if (!directText) setInput('')
     setLoading(true)
 
     try {
@@ -51,7 +72,7 @@ export default function DefluvotClient({ userName }: Props) {
         parts: [{ text: m.text }]
       }))
 
-      const response = await analyzeDocument(null, 'Consulta General ERP', currentInput, history)
+      const response = await analyzeDocument(null, 'Consulta General ERP', messageText, history)
       
       const botMsg: Message = { 
         role: 'bot', 
@@ -80,7 +101,7 @@ export default function DefluvotClient({ userName }: Props) {
                  <h3 className="text-lg font-black uppercase tracking-widest text-[#0a2d4d]">DEFLUVOT</h3>
                  <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-tighter">Motor Gemini Flash v1.5 Activo</span>
+                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-tighter">Motor Gemini 3.1 Flash Lite Activo</span>
                  </div>
               </div>
            </div>
@@ -104,7 +125,14 @@ export default function DefluvotClient({ userName }: Props) {
                     ? 'bg-[#0a2d4d] text-white rounded-tr-none border-blue-900' 
                     : 'bg-white text-[#0a2d4d] rounded-tl-none border-gray-100'
                 }`}>
-                   {msg.text}
+                   <div className={`prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : 'prose-slate'} 
+                      prose-p:leading-relaxed prose-strong:font-black prose-strong:text-blue-900
+                      ${msg.role === 'user' ? 'prose-strong:text-white' : ''}
+                    `}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.text}
+                      </ReactMarkdown>
+                   </div>
                 </div>
                 <span className="text-[9px] font-bold text-gray-300 uppercase px-2">{msg.timestamp}</span>
              </div>
@@ -120,7 +148,25 @@ export default function DefluvotClient({ userName }: Props) {
 
         {/* Input Area */}
         <div className="p-8 bg-white border-t border-gray-50">
-           <form onSubmit={handleSendMessage} className="relative group">
+           {/* Quick Actions */}
+           <div className="flex flex-wrap gap-2 mb-6">
+              {[
+                { label: '📊 ¿Cómo va mi departamento?', query: '¿Cómo va el cumplimiento de mi departamento actualmente?' },
+                { label: '📝 Mis tareas pendientes', query: '¿Qué tareas tengo asignadas y cuáles están pendientes?' },
+                { label: '🛡️ Alertas de calidad', query: '¿Hay documentos vencidos o rechazados que requieran mi atención?' },
+                { label: '💡 Consejo ISO-9001', query: 'Dame un consejo rápido para mejorar la gestión de calidad hoy.' }
+              ].map((action, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSendMessage(undefined, action.query)}
+                  className="px-4 py-2 bg-blue-50 hover:bg-[#0a2d4d] hover:text-white text-[#0a2d4d] text-[10px] font-black uppercase tracking-widest rounded-xl border border-blue-100 transition-all active:scale-95"
+                >
+                  {action.label}
+                </button>
+              ))}
+           </div>
+
+           <form onSubmit={(e) => handleSendMessage(e)} className="relative group">
               <input 
                  type="text" 
                  value={input}
