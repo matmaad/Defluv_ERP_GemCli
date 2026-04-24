@@ -259,8 +259,7 @@ export default function AuditClient({ initialLogs, profiles, userRole }: Props) 
                            <th className="px-8 py-4 w-40 text-center">GESTIÓN</th>
                         </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50 font-medium">
-                        {filteredLogs.map((log) => (
+                        <tbody className="divide-y divide-gray-50 font-medium">{filteredLogs.map((log) => (
                           <tr key={log.id} className="hover:bg-gray-50 transition-colors group">
                              <td className="px-8 py-4 text-[11px] font-bold text-gray-400 tabular-nums">{formatDateTimeChile(log.timestamp)}</td>
                              <td className="px-8 py-4 text-xs font-black uppercase text-[#0a2d4d]">{log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA'}</td>
@@ -291,7 +290,7 @@ export default function AuditClient({ initialLogs, profiles, userRole }: Props) 
                                 </button>
                              </td>
                           </tr>
-                        ))}                     </tbody>
+                        ))}</tbody>
                   </table>
                </div>
              </>
