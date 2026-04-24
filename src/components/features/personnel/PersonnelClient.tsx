@@ -15,7 +15,7 @@ import {
   Loader2,
   Edit3
 } from 'lucide-react'
-import { PersonalRecord } from '@/app/types/database'
+import { PersonalRecord, Department } from '@/app/types/database'
 import AddPersonnelModal from './AddPersonnelModal'
 import UploadPersonnelDocumentModal from './UploadPersonnelDocumentModal'
 import ViewPersonnelDocumentsModal from './ViewPersonnelDocumentsModal'
