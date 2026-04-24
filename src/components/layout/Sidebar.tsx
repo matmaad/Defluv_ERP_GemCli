@@ -11,7 +11,8 @@ import {
   History, 
   Settings, 
   Bot,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/cliente'
 
@@ -23,7 +24,12 @@ const navItems = [
   { name: 'REGISTRO AUDITORÍA', href: '/auditoria', icon: History },
 ]
 
-export default function Sidebar() {
+interface Props {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export default function Sidebar({ isOpen, onClose }: Props) {
   const pathname = usePathname()
   const supabase = createClient()
 
@@ -33,11 +39,21 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-[#0a2d4d] flex flex-col h-full shrink-0 z-50">
+    <aside className={`
+      fixed inset-y-0 left-0 w-64 bg-[#0a2d4d] flex flex-col h-full shrink-0 z-50 transition-transform duration-300 transform
+      lg:relative lg:translate-x-0 
+      ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    `}>
       {/* Brand Header */}
-      <div className="pt-8 pb-6 px-6 flex flex-col items-center">
+      <div className="pt-8 pb-6 px-6 flex flex-col items-center relative">
+        <button 
+          onClick={onClose}
+          className="absolute right-4 top-4 text-white/50 hover:text-white lg:hidden"
+        >
+          <X size={20} />
+        </button>
         <img src="/logo-defluv.png" alt="Logo" className="w-full h-auto brightness-0 invert" />
-        <p className="text-[10px] font-black text-[#BEDBFF] uppercase tracking-[0.3em] mt-3">GESTIÓN DE CALIDAD</p>
+        <p className="text-[10px] font-black text-[#BEDBFF] uppercase tracking-[0.3em] mt-3 text-center">GESTIÓN DE CALIDAD</p>
       </div>
 
       {/* Divider */}
@@ -53,6 +69,7 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => { if (window.innerWidth < 1024) onClose() }}
               className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all group ${
                 isActive 
                   ? 'bg-[#155DFC] shadow-lg text-white' 
@@ -70,6 +87,7 @@ export default function Sidebar() {
       <div className="px-4 py-6 border-t border-white/10 space-y-1">
         <Link
           href="/defluvot"
+          onClick={() => { if (window.innerWidth < 1024) onClose() }}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${pathname === '/defluvot' ? 'bg-[#155DFC] text-white shadow-lg' : 'text-green-400 hover:bg-white/10'}`}
         >
           <Bot size={20} className={`${pathname === '/defluvot' ? 'text-white' : 'text-green-400'} group-hover:scale-110 transition-transform`} />
@@ -77,6 +95,7 @@ export default function Sidebar() {
         </Link>
         <Link
           href="/opciones"
+          onClick={() => { if (window.innerWidth < 1024) onClose() }}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
             pathname === '/opciones' 
               ? 'bg-[#155DFC] text-white shadow-lg' 

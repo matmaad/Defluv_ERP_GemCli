@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Bell, Settings, User } from 'lucide-react'
+import { Bell, Settings, User, Menu } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
     role: string
     department_id?: string | null
   } | null
+  onMenuClick?: () => void
 }
 
 const routeNames: Record<string, string> = {
@@ -33,32 +34,42 @@ const routeSubtitles: Record<string, string> = {
   '/defluvot': 'CONSULTAS Y SOPORTE IA',
 }
 
-export default function Header({ user }: Props) {
+export default function Header({ user, onMenuClick }: Props) {
   const pathname = usePathname()
   const title = routeNames[pathname] || 'Sistema de Gestión'
   const subtitle = routeSubtitles[pathname] || 'Gestión de Procesos Corporativos'
 
   return (
-    <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 shrink-0 z-40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03)]">
-      <div className="flex flex-col">
-        <h2 className="text-xl font-black text-[#0a2d4d] uppercase tracking-tighter">{title}</h2>
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">{subtitle}</p>
+    <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 shrink-0 z-40 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03)]">
+      <div className="flex items-center gap-4">
+        {/* Mobile Menu Toggle */}
+        <button 
+          onClick={onMenuClick}
+          className="p-2 text-[#0a2d4d] hover:bg-gray-50 rounded-xl lg:hidden transition-all"
+        >
+          <Menu size={24} />
+        </button>
+        
+        <div className="flex flex-col">
+          <h2 className="text-sm md:text-xl font-black text-[#0a2d4d] uppercase tracking-tighter truncate max-w-[200px] md:max-w-none">{title}</h2>
+          <p className="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">{subtitle}</p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 md:gap-6">
+        <div className="flex items-center gap-1 md:gap-2">
           <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-xl transition-all relative">
             <Bell size={20} />
             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
-          <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-xl transition-all">
+          <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-xl transition-all hidden sm:flex">
             <Settings size={20} />
           </button>
         </div>
 
-        <div className="h-8 w-px bg-gray-100 mx-2"></div>
+        <div className="h-8 w-px bg-gray-100 mx-1 md:mx-2"></div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4">
           <div className="text-right hidden sm:block">
             <p className="text-xs font-black text-[#0a2d4d] uppercase tracking-tight">
               {user ? `${user.first_name} ${user.last_name}` : 'Invitado'}
@@ -67,7 +78,7 @@ export default function Header({ user }: Props) {
               {user?.role === 'admin' ? 'ADMINISTRADOR GENERAL' : user?.role.toUpperCase() || 'USUARIO'}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#0a2d4d] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-900/20 border-2 border-white overflow-hidden">
+          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#0a2d4d] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-900/20 border-2 border-white overflow-hidden">
             {user ? (
                <img src={`https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=0a2d4d&color=fff`} alt="Avatar" />
             ) : (
