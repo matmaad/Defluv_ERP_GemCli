@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
   const isPublicFile = request.nextUrl.pathname.match(/\.(.*)$/)
 
   if (!user && !isAuthPage && !isPublicFile) {
-    return NextResponse.redirect(new Error(request.url).name === 'login' ? request.url : new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Redirect to dashboard if already logged in and trying to access login
