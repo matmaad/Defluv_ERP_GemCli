@@ -106,11 +106,8 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
     if (!confirm(`¿Está seguro de eliminar la tarea "${title}"?`)) return
     setDeletingId(id)
     const { error } = await supabase.from('tasks').delete().eq('id', id)
-    if (!error) {
-      router.refresh()
-    } else {
-      alert('Error al eliminar.')
-    }
+    if (!error) router.refresh()
+    else alert('Error al eliminar.')
     setDeletingId(null)
   }
 
@@ -118,29 +115,15 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
     <div className="flex-1 p-4 md:p-8 space-y-8 bg-gray-50 overflow-y-auto text-[#0a2d4d] font-sans">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
-          {/* Banner Responsivo con Fondo Blueprint */}
           <div className="relative min-h-[16rem] md:h-72 rounded-xl bg-[#0a2d4d] overflow-hidden flex items-center px-8 md:px-12 text-white shadow-xl border-b-4 border-blue-600">
              <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
              <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '100px 100px' }}></div>
-             
              <div className="relative z-10 space-y-4 md:space-y-6 max-w-4xl pt-4 py-8 md:py-0">
                 <p className="text-[8px] md:text-[10px] font-black tracking-[0.4em] uppercase opacity-60">SISTEMA DE GESTIÓN DE CALIDAD</p>
-                <h2 className="text-3xl md:text-[52px] font-black leading-[0.95] md:leading-[0.9] tracking-tighter uppercase">
-                   OPTIMIZACIÓN DE<br />PROCESOS
-                </h2>
+                <h2 className="text-3xl md:text-[52px] font-black leading-[0.95] md:leading-[0.9] tracking-tighter uppercase">OPTIMIZACIÓN DE<br />PROCESOS</h2>
                 <div className="flex flex-wrap gap-3 md:gap-4 pt-2">
-                   <button 
-                    onClick={() => setGlobalDocModal({type: 'protocolos', title: 'PROTOCOLOS OPERATIVOS'})}
-                    className="px-6 md:px-8 py-2.5 md:py-3 bg-white text-[#0a2d4d] rounded-xl text-[9px] md:text-[10px] font-black hover:bg-gray-100 transition-all uppercase tracking-widest shadow-xl flex items-center gap-2"
-                   >
-                     <ShieldCheck size={14} /> REVISAR PROTOCOLOS
-                   </button>
-                   <button 
-                    onClick={() => setGlobalDocModal({type: 'iso', title: 'NORMA ISO 2026'})}
-                    className="px-6 md:md:px-8 py-2.5 md:py-3 bg-transparent border-2 border-white/30 text-white rounded-xl text-[9px] md:text-[10px] font-black hover:bg-white/10 transition-all uppercase tracking-widest flex items-center gap-2"
-                   >
-                     <FileText size={14} /> Norma ISO 2026
-                   </button>
+                   <button onClick={() => setGlobalDocModal({type: 'protocolos', title: 'PROTOCOLOS OPERATIVOS'})} className="px-6 md:px-8 py-2.5 md:py-3 bg-white text-[#0a2d4d] rounded-xl text-[9px] md:text-[10px] font-black hover:bg-gray-100 transition-all uppercase tracking-widest shadow-xl flex items-center gap-2"><ShieldCheck size={14} /> REVISAR PROTOCOLOS</button>
+                   <button onClick={() => setGlobalDocModal({type: 'iso', title: 'NORMA ISO 2026'})} className="px-6 md:px-8 py-2.5 md:py-3 bg-transparent border-2 border-white/30 text-white rounded-xl text-[9px] md:text-[10px] font-black hover:bg-white/10 transition-all uppercase tracking-widest flex items-center gap-2"><FileText size={14} /> Norma ISO 2026</button>
                 </div>
              </div>
           </div>
@@ -206,16 +189,14 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
          <div className="flex justify-between items-end px-1">
             <h3 className="text-sm font-black uppercase tracking-widest">Panel de Tareas Activas</h3>
             {(userRole === 'admin' || userRole === 'sub_admin') && (
-              <button onClick={() => setIsCreateTaskOpen(true)} className="px-4 md:px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-[9px] md:text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-900 transition-all flex items-center gap-2">
-                <Plus size={16} /> NUEVA TAREA
-              </button>
+              <button onClick={() => setIsCreateTaskOpen(true)} className="px-4 md:px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl font-bold text-[9px] md:text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-900 transition-all flex items-center gap-2"><Plus size={16} /> NUEVA TAREA</button>
             )}
          </div>
          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
                <table className="w-full text-left border-collapse min-w-[1000px]">
                   <thead>
-                     <tr className="bg-gray-50/50 border-b border-gray-100">
+                     <tr className="bg-gray-50/50 border-b border-gray-200">
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarea / Descripción</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Departamento</th>
                         <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Plazo Límite</th>
@@ -228,40 +209,18 @@ export default function DashboardClient({ allDocs, tasks, deadlines, userName, u
                   <tbody className="divide-y divide-gray-50 font-medium text-[#0a2d4d]">
                      {tasks.map((t, idx) => (
                        <tr key={idx} className="hover:bg-gray-50/30 transition-colors group">
-                          <td className="px-8 py-6">
-                             <p className="text-xs font-black uppercase">{t.title}</p>
-                             <p className="text-[9px] text-gray-400 font-bold uppercase mt-1 truncate max-w-[250px]">{t.description || 'Sin descripción'}</p>
-                       </td>
-                       <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{t.department?.name || 'S/D'}</td>
-                       <td className="px-8 py-6 text-center">
-                          <p className="text-xs font-black tabular-nums">{formatDateChile(t.due_date)}</p>
-                          {t.due_date && <p className="text-[9px] text-gray-400 font-bold tabular-nums uppercase">{t.due_date.split('T')[1]?.substring(0,5) || '18:00'} HRS</p>}
-                       </td>
-                       <td className="px-8 py-6 text-center">
-                          <span className={`px-3 py-1 rounded-full text-[8px] font-black tracking-widest border uppercase ${priorityStyles[t.priority] || 'bg-gray-50 text-gray-400'}`}>
-                             {t.priority}
-                          </span>
-                       </td>
-                       <td className="px-8 py-6 text-center">
-                          <button onClick={() => t.instruction_file_path && handleDownload(t.instruction_file_path, 'Plantilla.pdf', t.id)} disabled={!t.instruction_file_path} className={`p-2 rounded-lg border transition-all ${t.instruction_file_path ? 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white' : 'bg-gray-50 text-gray-200 border-gray-100 cursor-not-allowed'}`}><Eye size={16} /></button>
-                       </td>
-                       <td className="px-8 py-6 text-center">
-                          <button onClick={() => { if (t.resolution_file_path) handleDownload(t.resolution_file_path, 'Respuesta.pdf', t.id); else if (t.assigned_to_user_id === userId || userRole === 'admin') setUploadResTask({id: t.id, title: t.title}) }} disabled={!t.resolution_file_path && t.assigned_to_user_id !== userId && userRole !== 'admin'} className={`p-2 rounded-lg border transition-all ${t.resolution_file_path ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-300 border-gray-100'}`}><FileUp size={16} /></button>
-                       </td>
-                       <td className="px-8 py-6 text-right">
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                             {userRole === 'admin' && (
-                               <>
-                                 <button onClick={() => setEditModalTask(t)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit3 size={16} /></button>
-                                 <button onClick={() => handleDeleteTask(t.id, t.title)} disabled={deletingId === t.id} className="p-1 text-red-600 hover:bg-red-50 rounded">{deletingId === t.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}</button>
-                               </>
-                             )}
-                          </div>
-                       </td>
-                    </tr>
-                  ))}
-               </tbody>
-            </table>
+                          <td className="px-8 py-6"><p className="text-xs font-black uppercase">{t.title}</p><p className="text-[9px] text-gray-400 font-bold uppercase mt-1 truncate max-w-[250px]">{t.description || 'Sin descripción'}</p></td>
+                          <td className="px-8 py-6 text-[10px] font-black uppercase text-blue-600">{t.department?.name || 'S/D'}</td>
+                          <td className="px-8 py-6 text-center"><p className="text-xs font-black tabular-nums">{formatDateChile(t.due_date)}</p>{t.due_date && <p className="text-[9px] text-gray-400 font-bold tabular-nums uppercase">{t.due_date.split('T')[1]?.substring(0,5) || '18:00'} HRS</p>}</td>
+                          <td className="px-8 py-6 text-center"><span className={`px-3 py-1 rounded-full text-[8px] font-black tracking-widest border uppercase ${priorityStyles[t.priority] || 'bg-gray-50 text-gray-400'}`}>{t.priority}</span></td>
+                          <td className="px-8 py-6 text-center"><button onClick={() => t.instruction_file_path && handleDownload(t.instruction_file_path, 'Plantilla.pdf', t.id)} disabled={!t.instruction_file_path} className={`p-2 rounded-lg border transition-all ${t.instruction_file_path ? 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white' : 'bg-gray-50 text-gray-200 border-gray-100 cursor-not-allowed'}`}><Eye size={16} /></button></td>
+                          <td className="px-8 py-6 text-center"><button onClick={() => { if (t.resolution_file_path) handleDownload(t.resolution_file_path, 'Respuesta.pdf', t.id); else if (t.assigned_to_user_id === userId || userRole === 'admin') setUploadResTask({id: t.id, title: t.title}) }} disabled={!t.resolution_file_path && t.assigned_to_user_id !== userId && userRole !== 'admin'} className={`p-2 rounded-lg border transition-all ${t.resolution_file_path ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-300 border-gray-100'}`}><FileUp size={16} /></button></td>
+                          <td className="px-8 py-6 text-right"><div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">{userRole === 'admin' && (<><button onClick={() => setEditModalTask(t)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit3 size={16} /></button><button onClick={() => handleDeleteTask(t.id, t.title)} disabled={deletingId === t.id} className="p-1 text-red-600 hover:bg-red-50 rounded">{deletingId === t.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}</button></>)}</div></td>
+                       </tr>
+                     ))}
+                  </tbody>
+               </table>
+            </div>
          </div>
       </div>
 

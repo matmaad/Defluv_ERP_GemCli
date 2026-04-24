@@ -22,6 +22,19 @@ import { AuditLog, Document } from '@/app/types/database'
 import { analyzeDocument } from '@/app/actions/ai-actions'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
+import { 
+  AlertCircle,
+  FileWarning,
+  ListRestart
+} from 'lucide-react'
+
+import ManageIncidenceModal from './ManageIncidenceModal'
+
+// Mock data for NC History
+const mockNCHistory = [
+  { id: '1', date: '2026-04-20 10:30', original: 'APROBACIÓN', type: 'NO CONFORMIDAD', status: 'Pendiente' },
+  { id: '2', date: '2026-04-21 15:45', original: 'REEMPLAZO', type: 'TRABAJO MAL REALIZADO', status: 'Revisado' },
+]
 
 interface AuditLogWithDetails extends AuditLog {
   user?: {
@@ -52,6 +65,10 @@ const formatDateTimeChile = (dateString: string | null | undefined) => {
 export default function AuditClient({ initialLogs, profiles, userRole }: Props) {
   const [selectedLog, setSelectedLog] = useState<AuditLogWithDetails | null>(null)
   const [selectedDocData, setSelectedDocData] = useState<Document | null>(null)
+  const [activeTab, setActiveTab] = useState<'bitacora' | 'historial'>('bitacora')
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false)
+  const [managingLog, setManagingLog] = useState<AuditLogWithDetails | null>(null)
+  
   const [messages, setMessages] = useState<Message[]>([
     { role: 'bot', text: 'Bienvenido al asistente de auditoría. ¿En qué puedo ayudarte con este registro?', timestamp: new Date().toLocaleTimeString() }
   ])
@@ -148,7 +165,23 @@ export default function AuditClient({ initialLogs, profiles, userRole }: Props) 
 
   return (
     <div className="flex-1 p-8 space-y-8 bg-gray-50 overflow-y-auto font-sans text-[#0a2d4d]">
-      {showRetentionWarning && (
+      {/* Tab Switcher */}
+      <div className="flex border-b border-gray-200">
+        <button 
+          onClick={() => setActiveTab('bitacora')}
+          className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'bitacora' ? 'border-[#0a2d4d] text-[#0a2d4d]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+        >
+          Bitácora de Auditoría
+        </button>
+        <button 
+          onClick={() => setActiveTab('historial')}
+          className={`px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'historial' ? 'border-[#0a2d4d] text-[#0a2d4d]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+        >
+          Historial No Conformidades
+        </button>
+      </div>
+
+      {showRetentionWarning && activeTab === 'bitacora' && (
         <div className="bg-orange-50 border border-orange-100 px-8 py-3 flex items-center justify-between rounded-xl mb-4 shadow-sm">
            <div className="flex items-center gap-3 text-orange-600">
               <AlertTriangle size={20} />
@@ -162,94 +195,148 @@ export default function AuditClient({ initialLogs, profiles, userRole }: Props) 
 
       {!selectedLog ? (
         <div className="space-y-6">
-           <div className="flex justify-end gap-3">
-              {userRole === 'admin' && (
-                <button 
-                  onClick={handleDeleteAll}
-                  disabled={deletingAll}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-white border border-red-100 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm disabled:opacity-50"
-                >
-                   {deletingAll ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} 
-                   Eliminar Registro
-                </button>
-              )}
-              <button onClick={() => exportToCSV('mensual')} className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm">
-                 <FileDown size={14} className="text-blue-600" /> Informe Mensual
-              </button>
-              <button onClick={() => exportToCSV('completo')} className="flex items-center gap-2 px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20">
-                 <Download size={14} /> Exportar CSV
-              </button>
-           </div>
+           {activeTab === 'bitacora' ? (
+             <>
+               <div className="flex justify-end gap-3">
+                  {userRole === 'admin' && (
+                    <button 
+                      onClick={handleDeleteAll}
+                      disabled={deletingAll}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-white border border-red-100 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm disabled:opacity-50"
+                    >
+                       {deletingAll ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} 
+                       Eliminar Registro
+                    </button>
+                  )}
+                  <button onClick={() => exportToCSV('mensual')} className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm">
+                     <FileDown size={14} className="text-blue-600" /> Informe Mensual
+                  </button>
+                  <button onClick={() => exportToCSV('completo')} className="flex items-center gap-2 px-6 py-2.5 bg-[#0a2d4d] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20">
+                     <Download size={14} /> Exportar CSV
+                  </button>
+               </div>
 
-           <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-6 p-6 items-end">
-              <div className="space-y-1.5 flex-1 min-w-[150px]">
-                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Desde</label>
-                 <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-900 outline-none" />
-              </div>
-              <div className="space-y-1.5 flex-1 min-w-[150px]">
-                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Hasta</label>
-                 <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-900 outline-none" />
-              </div>
-              <div className="space-y-1.5 flex-1 min-w-[150px]">
-                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Usuario</label>
-                 <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-black text-[#0a2d4d] outline-none">
-                    <option value="">Todos los usuarios</option>
-                    {profiles.map(p => <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>)}
-                 </select>
-              </div>
-              <div className="space-y-1.5 flex-1 min-w-[150px]">
-                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Acción</label>
-                 <select value={selectedAction} onChange={(e) => setSelectedAction(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-black text-[#0a2d4d] outline-none">
-                    <option value="">Todas las acciones</option>
-                    <option value="REEMPLAZO">REEMPLAZO</option>
-                    <option value="APROBACIÓN">APROBACIÓN</option>
-                    <option value="VALIDACIÓN">VALIDACIÓN</option>
-                    <option value="CREACIÓN">CREACIÓN</option>
-                    <option value="ELIMINACIÓN">ELIMINACIÓN</option>
-                 </select>
-              </div>
-              <button onClick={clearFilters} className="px-6 py-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center gap-2 h-[42px]">
-                 <FilterX size={16} /> Limpiar Filtros
-              </button>
-           </div>
+               <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-6 p-6 items-end">
+                  <div className="space-y-1.5 flex-1 min-w-[150px]">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Desde</label>
+                     <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-900 outline-none" />
+                  </div>
+                  <div className="space-y-1.5 flex-1 min-w-[150px]">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Fecha Hasta</label>
+                     <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold text-zinc-900 outline-none" />
+                  </div>
+                  <div className="space-y-1.5 flex-1 min-w-[150px]">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Usuario</label>
+                     <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-black text-[#0a2d4d] outline-none">
+                        <option value="">Todos los usuarios</option>
+                        {profiles.map(p => <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>)}
+                     </select>
+                  </div>
+                  <div className="space-y-1.5 flex-1 min-w-[150px]">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Acción</label>
+                     <select value={selectedAction} onChange={(e) => setSelectedAction(e.target.value)} className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs font-black text-[#0a2d4d] outline-none">
+                        <option value="">Todas las acciones</option>
+                        <option value="REEMPLAZO">REEMPLAZO</option>
+                        <option value="APROBACIÓN">APROBACIÓN</option>
+                        <option value="VALIDACIÓN">VALIDACIÓN</option>
+                        <option value="CREACIÓN">CREACIÓN</option>
+                        <option value="ELIMINACIÓN">ELIMINACIÓN</option>
+                     </select>
+                  </div>
+                  <button onClick={clearFilters} className="px-6 py-2.5 bg-white border border-gray-200 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center gap-2 h-[42px]">
+                     <FilterX size={16} /> Limpiar Filtros
+                  </button>
+               </div>
 
-           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse table-fixed">
-                 <thead>
-                    <tr className="bg-gray-50 border-b border-gray-100 uppercase text-gray-400 font-black text-[10px] tracking-widest">
-                       <th className="px-8 py-4 w-48">TIMESTAMP</th>
-                       <th className="px-8 py-4 w-56">USUARIO</th>
-                       <th className="px-8 py-4 w-40">ACCIÓN</th>
-                       <th className="px-8 py-4 w-56">DOCUMENTO</th>
-                       <th className="px-8 py-4 w-auto">DESCRIPCIÓN</th>
-                    </tr>
-                 </thead>
-                 <tbody className="divide-y divide-gray-50 font-medium">
-                    {filteredLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-gray-50 transition-colors group">
-                         <td className="px-8 py-4 text-[11px] font-bold text-gray-400 tabular-nums">{formatDateTimeChile(log.timestamp)}</td>
-                         <td className="px-8 py-4 text-xs font-black uppercase text-[#0a2d4d]">{log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA'}</td>
-                         <td className="px-8 py-4 text-xs font-black">
-                            <span className={log.action_type.includes('APROB') || log.action_type.includes('VALID') ? 'text-green-600' : log.action_type.includes('REEMP') || log.action_type.includes('ELIMIN') ? 'text-red-600' : 'text-blue-600'}>
-                               {log.action_type.toUpperCase()}
-                            </span>
-                         </td>
-                         <td className="px-8 py-4">
-                            <button 
-                              onClick={() => handleViewDocument(log.resource_id)}
-                              className="text-xs font-bold text-blue-600 underline group-hover:text-blue-800 truncate flex items-center gap-2"
-                            >
-                               <Eye size={12} /> {log.resource_id?.slice(0,8)}...
-                            </button>
-                         </td>
-                         <td className="px-8 py-4" onClick={() => handleSelectLog(log)}>
-                            <p className="text-[11px] text-gray-500 italic truncate cursor-pointer hover:text-[#0a2d4d]">{log.justification || 'Ver detalles técnicos...'}</p>
-                         </td>
-                      </tr>
-                    ))}
-                 </tbody>
-              </table>
-           </div>
+               <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  <table className="w-full text-left border-collapse table-fixed">
+                     <thead>
+                        <tr className="bg-gray-50 border-b border-gray-100 uppercase text-gray-400 font-black text-[10px] tracking-widest">
+                           <th className="px-8 py-4 w-48">TIMESTAMP</th>
+                           <th className="px-8 py-4 w-56">USUARIO</th>
+                           <th className="px-8 py-4 w-40">ACCIÓN</th>
+                           <th className="px-8 py-4 w-auto">DESCRIPCIÓN</th>
+                           <th className="px-8 py-4 w-40 text-center">GESTIÓN</th>
+                        </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50 font-medium">
+                        {filteredLogs.map((log) => (
+                          <tr key={log.id} className="hover:bg-gray-50 transition-colors group">
+                             <td className="px-8 py-4 text-[11px] font-bold text-gray-400 tabular-nums">{formatDateTimeChile(log.timestamp)}</td>
+                             <td className="px-8 py-4 text-xs font-black uppercase text-[#0a2d4d]">{log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA'}</td>
+                             <td className="px-8 py-4 text-xs font-black">
+                                <span className={log.action_type.includes('APROB') || log.action_type.includes('VALID') ? 'text-green-600' : log.action_type.includes('REEMP') || log.action_type.includes('ELIMIN') ? 'text-red-600' : 'text-blue-600'}>
+                                   {log.action_type.toUpperCase()}
+                                </span>
+                             </td>
+                             <td className="px-8 py-4" onClick={() => handleSelectLog(log)}>
+                                <p className="text-[11px] text-gray-500 italic truncate cursor-pointer hover:text-[#0a2d4d]">{log.justification || 'Ver detalles técnicos...'}</p>
+                             </td>
+                             <td className="px-8 py-4 text-center">
+                                <button 
+                                  onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    // Sanitize data before passing to modal
+                                    setManagingLog({
+                                      id: log.id,
+                                      action_type: log.action_type,
+                                      user_name: log.user ? `${log.user.first_name} ${log.user.last_name}` : 'SISTEMA'
+                                    }); 
+                                    setIsManageModalOpen(true); 
+                                  }}
+                                  className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-[#0a2d4d] hover:text-white transition-all shadow-sm"
+                                  title="Gestionar No Conformidad"
+                                >
+                                   <FileWarning size={16} />
+                                </button>
+                             </td>
+                          </tr>
+                        ))}                     </tbody>
+                  </table>
+               </div>
+             </>
+           ) : (
+             <div className="space-y-6">
+                <div className="flex justify-between items-center px-1">
+                   <h3 className="text-sm font-black uppercase tracking-widest">Control de Calidad e Incidencias</h3>
+                   <button className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-[#0a2d4d] uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm">
+                      <Download size={14} /> Descargar Historial NC
+                   </button>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                   <table className="w-full text-left border-collapse">
+                      <thead>
+                         <tr className="bg-gray-50 border-b border-gray-100 uppercase text-gray-400 font-black text-[10px] tracking-widest">
+                            <th className="px-8 py-4">FECHA REPORTE</th>
+                            <th className="px-8 py-4">ACCIÓN ORIGINAL</th>
+                            <th className="px-8 py-4">TIPO INCIDENCIA</th>
+                            <th className="px-8 py-4">ESTADO</th>
+                            <th className="px-8 py-4 text-right">ACCIONES</th>
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 font-medium">
+                         {mockNCHistory.map((nc) => (
+                           <tr key={nc.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-8 py-4 text-[11px] font-bold text-gray-400 tabular-nums">{nc.date}</td>
+                              <td className="px-8 py-4 text-xs font-black uppercase text-[#0a2d4d]">{nc.original}</td>
+                              <td className="px-8 py-4 text-xs font-black">
+                                 <span className={nc.type === 'NO CONFORMIDAD' ? 'text-red-600' : 'text-orange-600'}>
+                                    {nc.type}
+                                 </span>
+                              </td>
+                              <td className="px-8 py-4 text-[10px] font-black">
+                                 <span className="px-2 py-1 bg-gray-100 rounded-md uppercase tracking-wider">{nc.status}</span>
+                              </td>
+                              <td className="px-8 py-4 text-right">
+                                 <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><ListRestart size={16} /></button>
+                              </td>
+                           </tr>
+                         ))}
+                      </tbody>
+                   </table>
+                </div>
+             </div>
+           )}
         </div>
       ) : (
         <div className="flex-1 flex overflow-hidden border-t border-gray-100">
@@ -283,6 +370,11 @@ export default function AuditClient({ initialLogs, profiles, userRole }: Props) 
            </div>
         </div>
       )}
+      <ManageIncidenceModal 
+        isOpen={isManageModalOpen} 
+        onClose={() => { setIsManageModalOpen(false); setManagingLog(null); }} 
+        log={managingLog} 
+      />
     </div>
   )
 }

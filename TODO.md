@@ -61,6 +61,10 @@
 - [ ] **Correcciones de Post-Lanzamiento**
     - [ ] Corregir y validar sistema de envío de correos (Resend) al asignar tareas a responsables (Implementación actual deficiente).
     - [ ] Mejorar interacción y entrenamiento de bot DEFLUVOT.
+    - [ ] **Gestión de No Conformidades (Auditoría)**
+        - [ ] Vincular Modal de Gestión con base de datos (Supabase).
+        - [ ] Implementar persistencia y carga real en el Historial de No Conformidades.
+        - [ ] Añadir campos de texto adicionales y lógica de guardado en `ManageIncidenceModal`.
 
 ---
 **PROYECTO LISTO PARA PRODUCCIÓN** 🚀

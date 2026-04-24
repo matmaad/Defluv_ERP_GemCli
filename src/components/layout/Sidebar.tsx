@@ -52,8 +52,10 @@ export default function Sidebar({ isOpen, onClose }: Props) {
         >
           <X size={20} />
         </button>
-        <img src="/logo-defluv.png" alt="Logo" className="w-full h-auto brightness-0 invert" />
-        <p className="text-[10px] font-black text-[#BEDBFF] uppercase tracking-[0.3em] mt-3 text-center">GESTIÓN DE CALIDAD</p>
+        <div className="w-[180px] flex flex-col items-center">
+          <img src="/logo-defluv.png" alt="Logo" className="w-full h-auto brightness-0 invert" />
+          <p className="text-[10px] font-black text-[#BEDBFF] uppercase tracking-[0.3em] mt-3 text-center w-full">GESTIÓN DE CALIDAD</p>
+        </div>
       </div>
 
       {/* Divider */}
