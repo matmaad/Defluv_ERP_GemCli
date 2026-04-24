@@ -2,21 +2,24 @@
 
 import { useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/cliente'
+import { useRouter } from 'next/navigation'
 
 export default function PresenceTracker() {
   const supabase = createClient()
+  const router = useRouter()
   const sessionIdRef = useRef<string | null>(null)
+  const lastActivityRef = useRef<number>(Date.now())
 
   useEffect(() => {
+    const INACTIVITY_LIMIT = 30 * 60 * 1000 // 30 minutes in ms
+
     const startSession = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // 1. Update last_seen_at in profiles
       await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id)
 
-      // 2. Create new entry in user_sessions
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_sessions')
         .insert({
           user_id: user.id,
@@ -26,22 +29,22 @@ export default function PresenceTracker() {
         .select('id')
         .single()
 
-      if (data) {
-        sessionIdRef.current = data.id
-      }
+      if (data) sessionIdRef.current = data.id
     }
 
     const updatePresence = async () => {
+      // Check for inactivity
+      if (Date.now() - lastActivityRef.current > INACTIVITY_LIMIT) {
+        handleAutoLogout()
+        return
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Update Presence
       await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id)
 
-      // Update Session Duration (+60 seconds)
       if (sessionIdRef.current) {
-        // We use RPC or raw increment if possible, or just fetch and add. 
-        // For simplicity here, we'll increment local tracking and push.
         const { data: current } = await supabase
           .from('user_sessions')
           .select('duration_seconds')
@@ -53,30 +56,38 @@ export default function PresenceTracker() {
             .from('user_sessions')
             .update({ 
               duration_seconds: (current.duration_seconds || 0) + 60,
-              logout_at: new Date().toISOString() // Always update logout_at as "last active"
+              logout_at: new Date().toISOString()
             })
             .eq('id', sessionIdRef.current)
         }
       }
     }
 
-    startSession()
-
-    const interval = setInterval(updatePresence, 60000)
-
-    // Close session on tab close
-    const handleUnload = () => {
-      if (sessionIdRef.current) {
-        // SendBeacon is better for unload but requires API endpoint. 
-        // We'll rely on the 1-min intervals for now.
-      }
+    const handleAutoLogout = async () => {
+      await supabase.auth.signOut()
+      router.push('/login?reason=inactivity')
+      window.location.reload() // Force clear state
     }
 
-    window.addEventListener('beforeunload', handleUnload)
+    const resetActivity = () => {
+      lastActivityRef.current = Date.now()
+    }
+
+    // Interaction Listeners
+    window.addEventListener('mousemove', resetActivity)
+    window.addEventListener('keydown', resetActivity)
+    window.addEventListener('click', resetActivity)
+    window.addEventListener('scroll', resetActivity)
+
+    startSession()
+    const interval = setInterval(updatePresence, 60000)
 
     return () => {
       clearInterval(interval)
-      window.removeEventListener('beforeunload', handleUnload)
+      window.removeEventListener('mousemove', resetActivity)
+      window.removeEventListener('keydown', resetActivity)
+      window.removeEventListener('click', resetActivity)
+      window.removeEventListener('scroll', resetActivity)
     }
   }, [])
 
