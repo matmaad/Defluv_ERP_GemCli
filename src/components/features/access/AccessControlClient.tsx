@@ -236,7 +236,38 @@ export default function AccessControlClient({ profiles, departments, permissions
                             <div className="p-6 bg-gray-50 border border-gray-100 rounded-2xl space-y-3 shadow-inner"><div className="flex items-center gap-2 text-[#0a2d4d]"><Calendar size={16} /><span className="text-[9px] font-black uppercase tracking-widest">Último Ingreso</span></div><p className="text-xl font-black">{selectedUser.last_seen_at ? formatDateTimeChile(selectedUser.last_seen_at) : 'SIN REGISTRO'}</p></div>
                             <div className="p-6 bg-gray-50 border border-gray-100 rounded-2xl space-y-3 shadow-inner"><div className="flex items-center gap-2 text-green-600"><Clock size={16} /><span className="text-[9px] font-black uppercase tracking-widest">Total Conectado</span></div><p className="text-2xl font-black">{formatDuration(sessionStats[selectedUser.id] || 0)}</p></div>
                          </div>
-                         <div className="space-y-4 text-center py-20 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200"><Activity size={48} className="mx-auto text-gray-200" /><p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Registros de actividad sincronizados.</p></div>
+                         <div className="space-y-4">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100 pb-3">Actividad Reciente (Últimas Sesiones)</h4>
+                            <div className="space-y-3">
+                               {recentSessions.filter(s => s.user_id === selectedUser.id).length > 0 ? (
+                                 recentSessions
+                                   .filter(s => s.user_id === selectedUser.id)
+                                   .slice(0, 5)
+                                   .map((s, idx) => (
+                                     <div key={idx} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
+                                        <div className="flex items-center gap-4">
+                                           <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                                              <Monitor size={14} />
+                                           </div>
+                                           <div>
+                                              <p className="text-xs font-black uppercase">{formatDateTimeChile(s.login_at)}</p>
+                                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Ingreso al Sistema</p>
+                                           </div>
+                                        </div>
+                                        <div className="text-right">
+                                           <p className="text-xs font-black text-[#0a2d4d]">{formatDuration(s.duration_seconds || 0)}</p>
+                                           <p className="text-[8px] font-bold text-gray-400 uppercase">Duración</p>
+                                        </div>
+                                     </div>
+                                   ))
+                               ) : (
+                                 <div className="py-10 text-center space-y-4 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
+                                    <Activity size={48} className="mx-auto text-gray-200" />
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Sin registros recientes.</p>
+                                 </div>
+                               )}
+                            </div>
+                         </div>
                       </div>
                    )}
                 </div>
