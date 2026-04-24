@@ -4,6 +4,50 @@ import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/server'
 import { logActionServer } from '@/utils/audit-server'
 
+export async function deleteUserAction(userId: string, userName: string) {
+  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  try {
+    await logActionServer('ELIMINACIÓN', 'Perfil', userId, `Se eliminó al usuario: ${userName}`)
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    if (authError) {
+      await supabaseAdmin.from('profiles').delete().eq('id', userId)
+      return { error: 'Eliminado de perfil, pero Auth reportó: ' + authError.message }
+    }
+    return { success: true }
+  } catch (err: any) { return { error: 'Error crítico al eliminar' } }
+}
+
+export async function deleteDepartmentAction(deptId: string, deptName: string) {
+  const supabase = await createClient()
+  try {
+    const { error } = await supabase.from('departments').delete().eq('id', deptId)
+    if (error) {
+      if (error.code === '23503') return { error: 'Departamento en uso. Reasigne registros primero.' }
+      throw error
+    }
+    await logActionServer('ELIMINACIÓN', 'Configuración', deptId, `Se eliminó depto: ${deptName}`)
+    return { success: true }
+  } catch (err: any) { return { error: 'Error al eliminar departamento' } }
+}
+
+// --- NEW ACTION: Update Department ---
+export async function updateDepartmentAction(deptId: string, newName: string) {
+  const supabase = await createClient()
+  try {
+    const { error } = await supabase
+      .from('departments')
+      .update({ name: newName })
+      .eq('id', deptId)
+    
+    if (error) throw error
+
+    await logActionServer('ACTUALIZACIÓN', 'Configuración', deptId, `Se renombró departamento a: ${newName}`)
+    return { success: true }
+  } catch (err: any) {
+    return { error: 'Error al actualizar departamento: ' + err.message }
+  }
+}
+
 export async function updateEmailAction(newEmail: string) {
   const supabase = await createClient()
   try {
@@ -88,30 +132,4 @@ export async function updateUserAction(userId: string, updates: any) {
     await logActionServer('ACTUALIZACIÓN', 'Perfil', userId, `Actualización de: ${updates.first_name}`)
     return { success: true }
   } catch (err: any) { return { error: 'Error al actualizar usuario' } }
-}
-
-export async function deleteUserAction(userId: string, userName: string) {
-  const supabaseAdmin = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-  try {
-    await logActionServer('ELIMINACIÓN', 'Perfil', userId, `Se eliminó al usuario: ${userName}`)
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
-    if (authError) {
-      await supabaseAdmin.from('profiles').delete().eq('id', userId)
-      return { error: 'Eliminado de perfil, pero Auth reportó: ' + authError.message }
-    }
-    return { success: true }
-  } catch (err: any) { return { error: 'Error crítico al eliminar' } }
-}
-
-export async function deleteDepartmentAction(deptId: string, deptName: string) {
-  const supabase = await createClient()
-  try {
-    const { error } = await supabase.from('departments').delete().eq('id', deptId)
-    if (error) {
-      if (error.code === '23503') return { error: 'Departamento en uso. Reasigne registros primero.' }
-      throw error
-    }
-    await logActionServer('ELIMINACIÓN', 'Configuración', deptId, `Se eliminó depto: ${deptName}`)
-    return { success: true }
-  } catch (err: any) { return { error: 'Error al eliminar departamento' } }
 }

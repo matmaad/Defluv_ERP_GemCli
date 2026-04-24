@@ -16,14 +16,14 @@ import {
   Calendar,
   Monitor,
   X,
-  Shield,
-  MessageSquare
+  Shield
 } from 'lucide-react'
 import { Profile, Department, Permission } from '@/app/types/database'
 import { createClient } from '@/utils/supabase/cliente'
 import { useRouter } from 'next/navigation'
 import RegisterUserModal from './RegisterUserModal'
 import EditUserModal from './EditUserModal'
+import EditDepartmentModal from './EditDepartmentModal'
 import { logAction } from '@/utils/audit-helper'
 import { deleteUserAction, deleteDepartmentAction } from '@/app/actions/auth-actions'
 
@@ -36,14 +36,6 @@ interface Props {
   recentSessions: any[]
 }
 
-const statusColors = {
-  Pendiente: '#155DFC',
-  Aprobado: '#008236',
-  Vencido: '#364153',
-  Rechazado: '#C10007',
-  'No Cumple': '#8200DB'
-}
-
 export default function AccessControlClient({ profiles, departments, permissions: initialPermissions, currentUserRole, sessionStats, recentSessions }: Props) {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(profiles[0] || null)
   const [localPermissions, setLocalPermissions] = useState<Permission[]>(initialPermissions)
@@ -54,6 +46,7 @@ export default function AccessControlClient({ profiles, departments, permissions
   
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
   const [editModalUser, setEditModalUser] = useState<Profile | null>(null)
+  const [editModalDept, setEditModalDept] = useState<Department | null>(null)
   
   const supabase = createClient()
   const router = useRouter()
@@ -130,7 +123,7 @@ export default function AccessControlClient({ profiles, departments, permissions
   }
 
   const handleDeleteDept = async (id: string, name: string) => {
-    if (!confirm(`¿Está seguro de eliminar el departamento "${name}"? Los documentos asociados no se borrarán, pero se perderá la referencia.`)) return
+    if (!confirm(`¿Está seguro de eliminar el departamento "${name}"?`)) return
     const result = await deleteDepartmentAction(id, name)
     if (result.error) alert(result.error)
     else { alert('Departamento eliminado.'); router.refresh() }
@@ -223,7 +216,7 @@ export default function AccessControlClient({ profiles, departments, permissions
                                          <td className="w-24 py-4 text-right px-8">
                                             {currentUserRole === 'admin' && (
                                               <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                 <button className="p-1 text-blue-400 hover:text-blue-600"><Edit3 size={14} /></button>
+                                                 <button onClick={() => setEditModalDept(d)} className="p-1 text-blue-400 hover:text-blue-600"><Edit3 size={14} /></button>
                                                  <button onClick={() => handleDeleteDept(d.id, d.name)} className="p-1 text-red-300 hover:text-red-600"><Trash2 size={14} /></button>
                                               </div>
                                             )}
@@ -255,6 +248,7 @@ export default function AccessControlClient({ profiles, departments, permissions
       </div>
       <RegisterUserModal isOpen={isRegisterModalOpen} onClose={() => setIsRegisterModalOpen(false)} departments={departments} />
       <EditUserModal isOpen={!!editModalUser} onClose={() => setEditModalUser(null)} user={editModalUser} />
+      <EditDepartmentModal isOpen={!!editModalDept} onClose={() => setEditModalDept(null)} department={editModalDept} />
     </div>
   )
 }
