@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
-import AuditClient from '@/components/features/audit/AuditClient'
+import AuditClient, { AuditLogWithDetails } from '@/components/features/audit/AuditClient'
 import { Profile, AuditLog } from '@/app/types/database'
 
 function AuditSkeleton() {
@@ -15,14 +15,6 @@ function AuditSkeleton() {
   )
 }
 
-interface AuditLogWithUser extends AuditLog {
-  user: {
-    first_name: string;
-    last_name: string;
-    department_id: string | null;
-  } | null;
-}
-
 async function AuditDataLayer({ profile }: { profile: Pick<Profile, 'role' | 'department_id'> | null }) {
   const supabase = await createClient()
 
@@ -33,7 +25,13 @@ async function AuditDataLayer({ profile }: { profile: Pick<Profile, 'role' | 'de
       : supabase.from('audit_logs').select(`*, user:profiles!user_id (first_name, last_name, department_id)`).order('timestamp', { ascending: false }).limit(500)
   ])
 
-  const initialLogs = (logsResult.data as unknown as AuditLogWithUser[]) || []
+  const initialLogs: AuditLogWithDetails[] = (logsResult.data || []).map(log => ({
+    ...log,
+    user: log.user ? {
+      first_name: log.user.first_name,
+      last_name: log.user.last_name
+    } : undefined
+  }))
 
   return (
     <AuditClient 

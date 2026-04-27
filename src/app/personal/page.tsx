@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import PersonnelClient from '@/components/features/personnel/PersonnelClient'
+import { Profile, PersonalRecord, Department } from '@/app/types/database'
 
 function PersonnelSkeleton() {
   return (
@@ -14,7 +15,7 @@ function PersonnelSkeleton() {
   )
 }
 
-async function PersonnelDataLayer({ profile }: { profile: any }) {
+async function PersonnelDataLayer({ profile }: { profile: Pick<Profile, 'role' | 'department_id'> | null }) {
   const supabase = await createClient()
 
   const [departmentsResult, recordsResult] = await Promise.all([
@@ -26,8 +27,8 @@ async function PersonnelDataLayer({ profile }: { profile: any }) {
 
   return (
     <PersonnelClient 
-      initialRecords={(recordsResult.data as any) || []} 
-      departments={departmentsResult.data || []}
+      initialRecords={(recordsResult.data as PersonalRecord[]) || []} 
+      departments={(departmentsResult.data as Department[]) || []}
       userRole={profile?.role || 'regular_user'}
       userDeptId={profile?.department_id || null}
     />
@@ -44,7 +45,7 @@ export default async function PersonalPage() {
   return (
     <div className="min-h-full bg-gray-50 pt-8">
       <Suspense fallback={<PersonnelSkeleton />}>
-        <PersonnelDataLayer profile={profile} />
+        <PersonnelDataLayer profile={profile as Pick<Profile, 'role' | 'department_id'> | null} />
       </Suspense>
     </div>
   )

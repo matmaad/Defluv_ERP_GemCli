@@ -36,7 +36,7 @@ const mockNCHistory = [
   { id: '2', date: '2026-04-21 15:45', original: 'REEMPLAZO', type: 'TRABAJO MAL REALIZADO', status: 'Revisado' },
 ]
 
-interface AuditLogWithDetails extends AuditLog {
+export interface AuditLogWithDetails extends AuditLog {
   user?: {
     first_name: string
     last_name: string
